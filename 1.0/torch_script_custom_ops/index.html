@@ -1,0 +1,9103 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://pytorch.apachecn.org/1.0/torch_script_custom_ops/">
+      
+      
+        <link rel="prev" href="../cpp_extension/">
+      
+      
+        <link rel="next" href="../dist_tuto/">
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.4.3, mkdocs-material-9.1.17">
+    
+    
+      
+        <title>Extending TorchScript with Custom C-- Operators - 【布客】PyTorch 中文翻译</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.26e3688c.min.css">
+      
+      
+
+    
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  <link rel="stylesheet" href="../../assets/stylesheets/custom.bea7efe8.min.css">
+  <!-- google ads -->
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3565452474788507" crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-8DP4GX97XY"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-8DP4GX97XY');
+  </script>
+  <!-- google webmaster -->
+  <meta name="google-site-verification" content="pyo9N70ZWyh8JB43bIu633mhxesJ1IcwWCZlM3jUfFo" />
+
+  <!-- wwads-cn union -->
+  <meta name="wwads-cn-verify" content="03c6b06952c750899bb03d998e631860" />
+  <script type="text/javascript" charset="UTF-8" src="https://cdn.wwads.cn/js/makemoney.js" async></script>
+
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&"object"==typeof palette.color)for(var key of Object.keys(palette.color))document.body.setAttribute("data-md-color-"+key,palette.color[key])</script>
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#c" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+        <aside class="md-banner">
+          <div class="md-banner__inner md-grid md-typeset">
+            
+            
+  => 组织无偿提供 中文版本（免费，秒级响应）
+  <a target="_blank" href="https://chat.ibooker.org.cn/chat" style="color: red;">
+    <span class="twemoji mastodon">
+      <img src="https://data.apachecn.org/img/icon/ROBOT_TXT.svg" alt="ChatGPT - ailake.top">
+    </span>
+    <strong>ChatGPT - ailake.top</strong>
+  </a> 一起来白嫖叭～！
+
+          </div>
+          
+        </aside>
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="【布客】PyTorch 中文翻译" class="md-header__button md-logo" aria-label="【布客】PyTorch 中文翻译" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2Z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            【布客】PyTorch 中文翻译
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Extending TorchScript with Custom C-- Operators
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41Z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/apachecn/pytorch-doc-zh" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    apachecn/pytorch-doc-zh
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="【布客】PyTorch 中文翻译" class="md-nav__button md-logo" aria-label="【布客】PyTorch 中文翻译" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"/></svg>
+
+    </a>
+    【布客】PyTorch 中文翻译
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/apachecn/pytorch-doc-zh" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    apachecn/pytorch-doc-zh
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        PyTorch 中文文档 & 教程
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+          PyTorch 2.0 中文文档 & 教程
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_2">
+          <span class="md-nav__icon md-icon"></span>
+          PyTorch 2.0 中文文档 & 教程
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_1" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_2_1" id="__nav_2_1_label" tabindex="0">
+          中文教程
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_1_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_2_1">
+          <span class="md-nav__icon md-icon"></span>
+          中文教程
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../2.0/tutorials/README.md" class="md-nav__link">
+        介绍
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_2" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_2_2" id="__nav_2_2_label" tabindex="0">
+          中文文档
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_2_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_2_2">
+          <span class="md-nav__icon md-icon"></span>
+          中文文档
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../2.0/docs/" class="md-nav__link">
+        介绍
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+          PyTorch 1.7 中文文档
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_3">
+          <span class="md-nav__icon md-icon"></span>
+          PyTorch 1.7 中文文档
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_1" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_3_1" id="__nav_3_1_label" tabindex="0">
+          学习 PyTorch
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_1_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_3_1">
+          <span class="md-nav__icon md-icon"></span>
+          学习 PyTorch
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_1_1" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_3_1_1" id="__nav_3_1_1_label" tabindex="0">
+          PyTorch 深度学习：60 分钟的突击
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_3_1_1_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_3_1_1">
+          <span class="md-nav__icon md-icon"></span>
+          PyTorch 深度学习：60 分钟的突击
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../1.7/02/" class="md-nav__link">
+        介绍
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../1.7/03/" class="md-nav__link">
+        张量
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../1.7/04/" class="md-nav__link">
+        torch.autograd的简要介绍
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../1.7/05/" class="md-nav__link">
+        神经网络
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../1.7/06/" class="md-nav__link">
+        训练分类器
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_1_2" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_3_1_2" id="__nav_3_1_2_label" tabindex="0">
+          通过示例学习 PyTorch
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_3_1_2_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_3_1_2">
+          <span class="md-nav__icon md-icon"></span>
+          通过示例学习 PyTorch
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../1.7/07/" class="md-nav__link">
+        介绍
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../1.7/08/" class="md-nav__link">
+        热身：NumPy
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../1.7/09/" class="md-nav__link">
+        PyTorch：张量
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../1.7/10/" class="md-nav__link">
+        PyTorch：张量和 Autograd
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../1.7/11/" class="md-nav__link">
+        PyTorch：定义新的 Autograd 函数
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../1.7/12/" class="md-nav__link">
+        PyTorch：nn
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../1.7/13/" class="md-nav__link">
+        PyTorch：optim
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../1.7/14/" class="md-nav__link">
+        PyTorch：自定义nn模块
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../1.7/15/" class="md-nav__link">
+        PyTorch：控制流 - 权重共享
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../1.7/16/" class="md-nav__link">
+        torch.nn到底是什么？
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../1.7/17/" class="md-nav__link">
+        使用 TensorBoard 可视化模型，数据和训练
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_2" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_3_2" id="__nav_3_2_label" tabindex="0">
+          图片/视频
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_2_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_3_2">
+          <span class="md-nav__icon md-icon"></span>
+          图片/视频
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../1.7/19/" class="md-nav__link">
+        torchvision对象检测微调教程
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../1.7/20/" class="md-nav__link">
+        计算机视觉的迁移学习教程
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../1.7/21/" class="md-nav__link">
+        对抗示例生成
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../1.7/22/" class="md-nav__link">
+        DCGAN 教程
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_3" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_3_3" id="__nav_3_3_label" tabindex="0">
+          音频
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_3_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_3_3">
+          <span class="md-nav__icon md-icon"></span>
+          音频
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../1.7/24/" class="md-nav__link">
+        音频 I/O 和torchaudio的预处理
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../1.7/25/" class="md-nav__link">
+        使用torchaudio的语音命令识别
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_4" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_3_4" id="__nav_3_4_label" tabindex="0">
+          文本
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_4_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_3_4">
+          <span class="md-nav__icon md-icon"></span>
+          文本
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../1.7/27/" class="md-nav__link">
+        使用nn.Transformer和torchtext的序列到序列建模
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../1.7/28/" class="md-nav__link">
+        从零开始的 NLP：使用字符级 RNN 分类名称
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../1.7/29/" class="md-nav__link">
+        从零开始的 NLP：使用字符级 RNN 生成名称
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../1.7/30/" class="md-nav__link">
+        从零开始的 NLP：使用序列到序列网络和注意力的翻译
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../1.7/31/" class="md-nav__link">
+        使用torchtext的文本分类
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../1.7/32/" class="md-nav__link">
+        torchtext语言翻译
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_5" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_3_5" id="__nav_3_5_label" tabindex="0">
+          强化学习
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_5_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_3_5">
+          <span class="md-nav__icon md-icon"></span>
+          强化学习
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../1.7/34/" class="md-nav__link">
+        强化学习（DQN）教程
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../1.7/35/" class="md-nav__link">
+        训练玩马里奥的 RL 智能体
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_6" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_3_6" id="__nav_3_6_label" tabindex="0">
+          在生产中部署 PyTorch 模型
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_6_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_3_6">
+          <span class="md-nav__icon md-icon"></span>
+          在生产中部署 PyTorch 模型
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../1.7/37/" class="md-nav__link">
+        通过使用 Flask 的 REST API 在 Python 中部署 PyTorch
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../1.7/38/" class="md-nav__link">
+        TorchScript 简介
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../1.7/39/" class="md-nav__link">
+        在 C-- 中加载 TorchScript 模型
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../1.7/40/" class="md-nav__link">
+        将模型从 PyTorch 导出到 ONNX 并使用 ONNX 运行时运行它（可选）
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_7" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_3_7" id="__nav_3_7_label" tabindex="0">
+          前端 API
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_7_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_3_7">
+          <span class="md-nav__icon md-icon"></span>
+          前端 API
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../1.7/42/" class="md-nav__link">
+        PyTorch 中的命名张量简介（原型）
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../1.7/43/" class="md-nav__link">
+        PyTorch 中通道在最后的内存格式（beta）
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../1.7/44/" class="md-nav__link">
+        使用 PyTorch C-- 前端
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../1.7/45/" class="md-nav__link">
+        自定义 C-- 和 CUDA 扩展
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../1.7/46/" class="md-nav__link">
+        使用自定义 C-- 运算符扩展 TorchScript
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../1.7/47/" class="md-nav__link">
+        使用自定义 C-- 类扩展 TorchScript
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../1.7/48/" class="md-nav__link">
+        TorchScript 中的动态并行性
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../1.7/49/" class="md-nav__link">
+        C-- 前端中的 Autograd
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../1.7/50/" class="md-nav__link">
+        在 C-- 中注册调度运算符
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_8" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_3_8" id="__nav_3_8_label" tabindex="0">
+          模型优化
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_8_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_3_8">
+          <span class="md-nav__icon md-icon"></span>
+          模型优化
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../1.7/52/" class="md-nav__link">
+        分析您的 PyTorch 模块
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../1.7/53/" class="md-nav__link">
+        使用 Ray Tune 的超参数调整
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../1.7/54/" class="md-nav__link">
+        模型剪裁教程
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../1.7/55/" class="md-nav__link">
+        LSTM 单词语言模型上的动态量化（beta）
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../1.7/56/" class="md-nav__link">
+        BERT 上的动态量化（Beta）
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../1.7/57/" class="md-nav__link">
+        PyTorch 中使用 Eager 模式的静态量化（beta）
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../1.7/58/" class="md-nav__link">
+        计算机视觉的量化迁移学习教程（beta）
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_9" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_3_9" id="__nav_3_9_label" tabindex="0">
+          并行和分布式训练
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_9_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_3_9">
+          <span class="md-nav__icon md-icon"></span>
+          并行和分布式训练
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../1.7/60/" class="md-nav__link">
+        PyTorch 分布式概述
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../1.7/61/" class="md-nav__link">
+        单机模型并行最佳实践
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../1.7/62/" class="md-nav__link">
+        分布式数据并行入门
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../1.7/63/" class="md-nav__link">
+        用 PyTorch 编写分布式应用
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../1.7/64/" class="md-nav__link">
+        分布式 RPC 框架入门
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../1.7/65/" class="md-nav__link">
+        使用分布式 RPC 框架实现参数服务器
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../1.7/66/" class="md-nav__link">
+        使用 RPC 的分布式管道并行化
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../1.7/67/" class="md-nav__link">
+        使用异步执行实现批量 RPC 处理
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../1.7/68/" class="md-nav__link">
+        将分布式DataParallel与分布式 RPC 框架相结合
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+          PyTorch 1.4 中文文档 & 教程
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_4">
+          <span class="md-nav__icon md-icon"></span>
+          PyTorch 1.4 中文文档 & 教程
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_1" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_4_1" id="__nav_4_1_label" tabindex="0">
+          入门
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_1_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_4_1">
+          <span class="md-nav__icon md-icon"></span>
+          入门
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_1_1" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_4_1_1" id="__nav_4_1_1_label" tabindex="0">
+          使用 PyTorch 进行深度学习：60 分钟的闪电战
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_4_1_1_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_4_1_1">
+          <span class="md-nav__icon md-icon"></span>
+          使用 PyTorch 进行深度学习：60 分钟的闪电战
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../1.4/4/" class="md-nav__link">
+        介绍
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../1.4/blitz/tensor_tutorial/" class="md-nav__link">
+        什么是PyTorch
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../1.4/blitz/autograd_tutorial/" class="md-nav__link">
+        Autograd：自动求导
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../1.4/blitz/neural_networks_tutorial/" class="md-nav__link">
+        神经网络
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../1.4/blitz/cifar10_tutorial/" class="md-nav__link">
+        训练分类器
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../1.4/blitz/data_parallel_tutorial/" class="md-nav__link">
+        可选：数据并行
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../1.4/5/" class="md-nav__link">
+        编写自定义数据集，数据加载器和转换
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../1.4/6/" class="md-nav__link">
+        使用 TensorBoard 可视化模型，数据和训练
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_2" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_4_2" id="__nav_4_2_label" tabindex="0">
+          图片
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_2_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_4_2">
+          <span class="md-nav__icon md-icon"></span>
+          图片
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../1.4/8/" class="md-nav__link">
+        TorchVision 对象检测微调教程
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../1.4/9/" class="md-nav__link">
+        转移学习的计算机视觉教程
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../1.4/10/" class="md-nav__link">
+        空间变压器网络教程
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../1.4/11/" class="md-nav__link">
+        使用 PyTorch 进行神经传递
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../1.4/12/" class="md-nav__link">
+        对抗示例生成
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../1.4/13/" class="md-nav__link">
+        DCGAN 教程
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_3" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_4_3" id="__nav_4_3_label" tabindex="0">
+          音频
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_3_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_4_3">
+          <span class="md-nav__icon md-icon"></span>
+          音频
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../1.4/15/" class="md-nav__link">
+        torchaudio 教程
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_4" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_4_4" id="__nav_4_4_label" tabindex="0">
+          文本
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_4_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_4_4">
+          <span class="md-nav__icon md-icon"></span>
+          文本
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../1.4/17/" class="md-nav__link">
+        NLP From Scratch: 使用char-RNN对姓氏进行分类
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../1.4/18/" class="md-nav__link">
+        NLP From Scratch: 生成名称与字符级RNN
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../1.4/19/" class="md-nav__link">
+        NLP From Scratch: 基于注意力机制的 seq2seq 神经网络翻译
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../1.4/20/" class="md-nav__link">
+        使用 TorchText 进行文本分类
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../1.4/21/" class="md-nav__link">
+        使用 TorchText 进行语言翻译
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../1.4/22/" class="md-nav__link">
+        使用 nn.Transformer 和 TorchText 进行序列到序列建模
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_5" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_4_5" id="__nav_4_5_label" tabindex="0">
+          命名为 Tensor(实验性）
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_5_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_4_5">
+          <span class="md-nav__icon md-icon"></span>
+          命名为 Tensor(实验性）
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../1.4/24/" class="md-nav__link">
+        (实验性)PyTorch 中的命名张量简介
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_6" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_4_6" id="__nav_4_6_label" tabindex="0">
+          强化学习
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_6_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_4_6">
+          <span class="md-nav__icon md-icon"></span>
+          强化学习
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../1.4/26/" class="md-nav__link">
+        强化学习(DQN)教程
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_7" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_4_7" id="__nav_4_7_label" tabindex="0">
+          在生产中部署 PyTorch 模型
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_7_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_4_7">
+          <span class="md-nav__icon md-icon"></span>
+          在生产中部署 PyTorch 模型
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../1.4/28/" class="md-nav__link">
+        通过带有 Flask 的 REST API 在 Python 中部署 PyTorch
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../1.4/29/" class="md-nav__link">
+        TorchScript 简介
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../1.4/30/" class="md-nav__link">
+        在 C --中加载 TorchScript 模型
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../1.4/31/" class="md-nav__link">
+        (可选）将模型从 PyTorch 导出到 ONNX 并使用 ONNX Runtime 运行
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_8" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_4_8" id="__nav_4_8_label" tabindex="0">
+          并行和分布式训练
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_8_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_4_8">
+          <span class="md-nav__icon md-icon"></span>
+          并行和分布式训练
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../1.4/33/" class="md-nav__link">
+        单机模型并行最佳实践
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../1.4/34/" class="md-nav__link">
+        分布式数据并行入门
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../1.4/35/" class="md-nav__link">
+        用 PyTorch 编写分布式应用程序
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../1.4/36/" class="md-nav__link">
+        分布式 RPC 框架入门
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../1.4/37/" class="md-nav__link">
+        (高级）带有 Amazon AWS 的 PyTorch 1.0 分布式训练师
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_9" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_4_9" id="__nav_4_9_label" tabindex="0">
+          扩展 PyTorch
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_9_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_4_9">
+          <span class="md-nav__icon md-icon"></span>
+          扩展 PyTorch
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../1.4/39/" class="md-nav__link">
+        使用自定义 C --运算符扩展 TorchScript
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../1.4/40/" class="md-nav__link">
+        使用自定义 C --类扩展 TorchScript
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../1.4/41/" class="md-nav__link">
+        使用 numpy 和 scipy 创建扩展
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../1.4/42/" class="md-nav__link">
+        自定义 C --和 CUDA 扩展
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_10" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_4_10" id="__nav_4_10_label" tabindex="0">
+          模型优化
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_10_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_4_10">
+          <span class="md-nav__icon md-icon"></span>
+          模型优化
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../1.4/44/" class="md-nav__link">
+        LSTM Word 语言模型上的(实验）动态量化
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../1.4/45/" class="md-nav__link">
+        (实验性）在 PyTorch 中使用 Eager 模式进行静态量化
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../1.4/46/" class="md-nav__link">
+        (实验性）计算机视觉教程的量化转移学习
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../1.4/47/" class="md-nav__link">
+        (实验）BERT 上的动态量化
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../1.4/48/" class="md-nav__link">
+        修剪教程
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_11" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_4_11" id="__nav_4_11_label" tabindex="0">
+          PyTorch 用其他语言
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_11_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_4_11">
+          <span class="md-nav__icon md-icon"></span>
+          PyTorch 用其他语言
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../1.4/50/" class="md-nav__link">
+        使用 PyTorch C --前端
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_12" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_4_12" id="__nav_4_12_label" tabindex="0">
+          PyTorch 基础知识
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_12_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_4_12">
+          <span class="md-nav__icon md-icon"></span>
+          PyTorch 基础知识
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../1.4/52/" class="md-nav__link">
+        通过示例学习 PyTorch
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../1.4/53/" class="md-nav__link">
+        torch.nn 到底是什么？
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_13" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_4_13" id="__nav_4_13_label" tabindex="0">
+          笔记
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_13_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_4_13">
+          <span class="md-nav__icon md-icon"></span>
+          笔记
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../1.4/56/" class="md-nav__link">
+        自动求导机制
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../1.4/57/" class="md-nav__link">
+        广播语义
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../1.4/58/" class="md-nav__link">
+        CPU 线程和 TorchScript 推断
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../1.4/59/" class="md-nav__link">
+        CUDA 语义
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../1.4/60/" class="md-nav__link">
+        分布式 Autograd 设计
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../1.4/61/" class="md-nav__link">
+        扩展 PyTorch
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../1.4/62/" class="md-nav__link">
+        经常问的问题
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../1.4/63/" class="md-nav__link">
+        大规模部署的功能
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../1.4/64/" class="md-nav__link">
+        并行处理最佳实践
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../1.4/65/" class="md-nav__link">
+        重现性
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../1.4/66/" class="md-nav__link">
+        远程参考协议
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../1.4/67/" class="md-nav__link">
+        序列化语义
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../1.4/68/" class="md-nav__link">
+        Windows 常见问题
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../1.4/69/" class="md-nav__link">
+        XLA 设备上的 PyTorch
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_14" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_4_14" id="__nav_4_14_label" tabindex="0">
+          语言绑定
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_14_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_4_14">
+          <span class="md-nav__icon md-icon"></span>
+          语言绑定
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../1.4/71/" class="md-nav__link">
+        PyTorch C -- API
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../1.4/72/" class="md-nav__link">
+        PyTorch Java API
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_15" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_4_15" id="__nav_4_15_label" tabindex="0">
+          Python API
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_15_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_4_15">
+          <span class="md-nav__icon md-icon"></span>
+          Python API
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../1.4/74/" class="md-nav__link">
+        torch
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../1.4/75/" class="md-nav__link">
+        torch.nn
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../1.4/76/" class="md-nav__link">
+        torch功能
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../1.4/77/" class="md-nav__link">
+        torch张量
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../1.4/78/" class="md-nav__link">
+        张量属性
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../1.4/79/" class="md-nav__link">
+        自动差分包-Torch.Autograd
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../1.4/80/" class="md-nav__link">
+        torch.cuda
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../1.4/81/" class="md-nav__link">
+        分布式通讯包-Torch.Distributed
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../1.4/82/" class="md-nav__link">
+        概率分布-torch分布
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../1.4/83/" class="md-nav__link">
+        torch.hub
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../1.4/84/" class="md-nav__link">
+        torch脚本
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../1.4/85/" class="md-nav__link">
+        torch.nn.init
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../1.4/86/" class="md-nav__link">
+        torch.onnx
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../1.4/87/" class="md-nav__link">
+        torch.optim
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../1.4/88/" class="md-nav__link">
+        量化
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../1.4/89/" class="md-nav__link">
+        分布式 RPC 框架
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../1.4/90/" class="md-nav__link">
+        torch随机
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../1.4/91/" class="md-nav__link">
+        torch稀疏
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../1.4/92/" class="md-nav__link">
+        torch存储
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../1.4/93/" class="md-nav__link">
+        torch.utils.bottleneck
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../1.4/94/" class="md-nav__link">
+        torch.utils.checkpoint
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../1.4/95/" class="md-nav__link">
+        torch.utils.cpp_extension
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../1.4/96/" class="md-nav__link">
+        torch.utils.data
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../1.4/97/" class="md-nav__link">
+        torch.utils.dlpack
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../1.4/98/" class="md-nav__link">
+        torch.utils.model_zoo
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../1.4/99/" class="md-nav__link">
+        torch.utils.tensorboard
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../1.4/100/" class="md-nav__link">
+        类型信息
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../1.4/101/" class="md-nav__link">
+        命名张量
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../1.4/102/" class="md-nav__link">
+        命名为 Tensors 操作员范围
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../1.4/103/" class="md-nav__link">
+        糟糕！
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_16" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_4_16" id="__nav_4_16_label" tabindex="0">
+          torchvision参考
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_16_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_4_16">
+          <span class="md-nav__icon md-icon"></span>
+          torchvision参考
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../1.4/105/" class="md-nav__link">
+        torchvision
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_17" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_4_17" id="__nav_4_17_label" tabindex="0">
+          音频参考
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_17_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_4_17">
+          <span class="md-nav__icon md-icon"></span>
+          音频参考
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../1.4/107/" class="md-nav__link">
+        torchaudio
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_18" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_4_18" id="__nav_4_18_label" tabindex="0">
+          torchtext参考
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_18_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_4_18">
+          <span class="md-nav__icon md-icon"></span>
+          torchtext参考
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../1.4/109/" class="md-nav__link">
+        torchtext
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_19" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_4_19" id="__nav_4_19_label" tabindex="0">
+          社区
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_19_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_4_19">
+          <span class="md-nav__icon md-icon"></span>
+          社区
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../1.4/111/" class="md-nav__link">
+        PyTorch 贡献指南
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../1.4/112/" class="md-nav__link">
+        PyTorch 治理
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../1.4/113/" class="md-nav__link">
+        PyTorch 治理| 感兴趣的人
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+    
+  
+  
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" checked>
+      
+      
+      
+        <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+          PyTorch 1.0 中文文档 & 教程
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="true">
+        <label class="md-nav__title" for="__nav_5">
+          <span class="md-nav__icon md-icon"></span>
+          PyTorch 1.0 中文文档 & 教程
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../" class="md-nav__link">
+        目录
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+    
+  
+  
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_2" checked>
+      
+      
+      
+        <label class="md-nav__link" for="__nav_5_2" id="__nav_5_2_label" tabindex="0">
+          中文教程
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_5_2_label" aria-expanded="true">
+        <label class="md-nav__title" for="__nav_5_2">
+          <span class="md-nav__icon md-icon"></span>
+          中文教程
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_2_1" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_5_2_1" id="__nav_5_2_1_label" tabindex="0">
+          入门
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_5_2_1_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_5_2_1">
+          <span class="md-nav__icon md-icon"></span>
+          入门
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_2_1_1" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_5_2_1_1" id="__nav_5_2_1_1_label" tabindex="0">
+          PyTorch 深度学习: 60 分钟极速入门
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="4" aria-labelledby="__nav_5_2_1_1_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_5_2_1_1">
+          <span class="md-nav__icon md-icon"></span>
+          PyTorch 深度学习: 60 分钟极速入门
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../deep_learning_60min_blitz/" class="md-nav__link">
+        介绍
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../blitz_tensor_tutorial/" class="md-nav__link">
+        什么是 PyTorch？
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../blitz_autograd_tutorial/" class="md-nav__link">
+        Autograd：自动求导
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../blitz_neural_networks_tutorial/" class="md-nav__link">
+        神经网络
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../blitz_cifar10_tutorial/" class="md-nav__link">
+        训练分类器
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../blitz_data_parallel_tutorial/" class="md-nav__link">
+        可选：数据并行处理
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../data_loading_tutorial/" class="md-nav__link">
+        数据加载和处理教程
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../pytorch_with_examples/" class="md-nav__link">
+        用例子学习 PyTorch
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../transfer_learning_tutorial/" class="md-nav__link">
+        迁移学习教程
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../deploy_seq2seq_hybrid_frontend_tutorial/" class="md-nav__link">
+        混合前端的 seq2seq 模型部署
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../saving_loading_models/" class="md-nav__link">
+        Saving and Loading Models
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../nn_tutorial/" class="md-nav__link">
+        What is torch.nn really?
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_2_2" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_5_2_2" id="__nav_5_2_2_label" tabindex="0">
+          图像
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_5_2_2_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_5_2_2">
+          <span class="md-nav__icon md-icon"></span>
+          图像
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../finetuning_torchvision_models_tutorial/" class="md-nav__link">
+        Torchvision 模型微调
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../spatial_transformer_tutorial/" class="md-nav__link">
+        空间变换器网络教程
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../neural_style_tutorial/" class="md-nav__link">
+        使用 PyTorch 进行图像风格转换
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../fgsm_tutorial/" class="md-nav__link">
+        对抗性示例生成
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../super_resolution_with_caffe2/" class="md-nav__link">
+        使用 ONNX 将模型从 PyTorch 传输到 Caffe2 和移动端
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_2_3" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_5_2_3" id="__nav_5_2_3_label" tabindex="0">
+          文本
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_5_2_3_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_5_2_3">
+          <span class="md-nav__icon md-icon"></span>
+          文本
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../chatbot_tutorial/" class="md-nav__link">
+        聊天机器人教程
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../char_rnn_generation_tutorial/" class="md-nav__link">
+        使用字符级别特征的 RNN 网络生成姓氏
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../char_rnn_classification_tutorial/" class="md-nav__link">
+        使用字符级别特征的 RNN 网络进行姓氏分类
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_2_3_4" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_5_2_3_4" id="__nav_5_2_3_4_label" tabindex="0">
+          Deep Learning for NLP with Pytorch
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="4" aria-labelledby="__nav_5_2_3_4_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_5_2_3_4">
+          <span class="md-nav__icon md-icon"></span>
+          Deep Learning for NLP with Pytorch
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../deep_learning_nlp_tutorial/" class="md-nav__link">
+        在深度学习和 NLP 中使用 Pytorch
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../nlp_pytorch_tutorial/" class="md-nav__link">
+        PyTorch 介绍
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../nlp_deep_learning_tutorial/" class="md-nav__link">
+        使用 PyTorch 进行深度学习
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../nlp_word_embeddings_tutorial/" class="md-nav__link">
+        Word Embeddings: Encoding Lexical Semantics
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../nlp_sequence_models_tutorial/" class="md-nav__link">
+        序列模型和 LSTM 网络
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../nlp_advanced_tutorial/" class="md-nav__link">
+        Advanced: Making Dynamic Decisions and the Bi-LSTM CRF
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../seq2seq_translation_tutorial/" class="md-nav__link">
+        基于注意力机制的 seq2seq 神经网络翻译
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_2_4" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_5_2_4" id="__nav_5_2_4_label" tabindex="0">
+          生成
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_5_2_4_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_5_2_4">
+          <span class="md-nav__icon md-icon"></span>
+          生成
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dcgan_faces_tutorial/" class="md-nav__link">
+        DCGAN Tutorial
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_2_5" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_5_2_5" id="__nav_5_2_5_label" tabindex="0">
+          强化学习
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_5_2_5_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_5_2_5">
+          <span class="md-nav__icon md-icon"></span>
+          强化学习
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reinforcement_q_learning/" class="md-nav__link">
+        Reinforcement Learning (DQN) Tutorial
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+    
+  
+  
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_2_6" checked>
+      
+      
+      
+        <label class="md-nav__link" for="__nav_5_2_6" id="__nav_5_2_6_label" tabindex="0">
+          扩展 PyTorch
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_5_2_6_label" aria-expanded="true">
+        <label class="md-nav__title" for="__nav_5_2_6">
+          <span class="md-nav__icon md-icon"></span>
+          扩展 PyTorch
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../numpy_extensions_tutorial/" class="md-nav__link">
+        用 numpy 和 scipy 创建扩展
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../cpp_extension/" class="md-nav__link">
+        Custom C-- and CUDA Extensions
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+    
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          Extending TorchScript with Custom C-- Operators
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        Extending TorchScript with Custom C-- Operators
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#c" class="md-nav__link">
+    在C ++中实现自定义运算符
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#torchscript" class="md-nav__link">
+    使用TorchScript注册自定义运算符
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_1" class="md-nav__link">
+    构建自定义运算符
+  </a>
+  
+    <nav class="md-nav" aria-label="构建自定义运算符">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cmake" class="md-nav__link">
+    用CMake建设
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#pythontorchscript" class="md-nav__link">
+    在Python中使用TorchScript自定义运算符
+  </a>
+  
+    <nav class="md-nav" aria-label="在Python中使用TorchScript自定义运算符">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#_2" class="md-nav__link">
+    使用带有跟踪的自定义运算符
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_3" class="md-nav__link">
+    使用自定义操作符和脚本
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#c-torchscript" class="md-nav__link">
+    在C ++中使用TorchScript自定义运算符
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_4" class="md-nav__link">
+    结论
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#a" class="md-nav__link">
+    附录A：构建自定义运算符的更多方法
+  </a>
+  
+    <nav class="md-nav" aria-label="附录A：构建自定义运算符的更多方法">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#jit" class="md-nav__link">
+    使用JIT编译构建
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#setuptools" class="md-nav__link">
+    使用Setuptools构建
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_2_7" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_5_2_7" id="__nav_5_2_7_label" tabindex="0">
+          生产性使用
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_5_2_7_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_5_2_7">
+          <span class="md-nav__icon md-icon"></span>
+          生产性使用
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dist_tuto/" class="md-nav__link">
+        Writing Distributed Applications with PyTorch
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../aws_distributed_training_tutorial/" class="md-nav__link">
+        使用 Amazon AWS 进行分布式训练
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ONNXLive/" class="md-nav__link">
+        ONNX 现场演示教程
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../cpp_export/" class="md-nav__link">
+        在 C-- 中加载 PYTORCH 模型
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_2_8" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_5_2_8" id="__nav_5_2_8_label" tabindex="0">
+          其它语言中的 PyTorch
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_5_2_8_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_5_2_8">
+          <span class="md-nav__icon md-icon"></span>
+          其它语言中的 PyTorch
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../cpp_frontend/" class="md-nav__link">
+        使用 PyTorch C-- 前端
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_3" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_5_3" id="__nav_5_3_label" tabindex="0">
+          中文文档
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_5_3_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_5_3">
+          <span class="md-nav__icon md-icon"></span>
+          中文文档
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_3_1" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_5_3_1" id="__nav_5_3_1_label" tabindex="0">
+          注解
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_5_3_1_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_5_3_1">
+          <span class="md-nav__icon md-icon"></span>
+          注解
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../notes_autograd/" class="md-nav__link">
+        自动求导机制
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../notes_broadcasting/" class="md-nav__link">
+        广播语义
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../notes_cuda/" class="md-nav__link">
+        CUDA 语义
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../notes_extending/" class="md-nav__link">
+        Extending PyTorch
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../notes_faq/" class="md-nav__link">
+        Frequently Asked Questions
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../notes_multiprocessing/" class="md-nav__link">
+        Multiprocessing best practices
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../notes_randomness/" class="md-nav__link">
+        Reproducibility
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../notes_serialization/" class="md-nav__link">
+        Serialization semantics
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../notes_windows/" class="md-nav__link">
+        Windows FAQ
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_3_2" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_5_3_2" id="__nav_5_3_2_label" tabindex="0">
+          包参考
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_5_3_2_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_5_3_2">
+          <span class="md-nav__icon md-icon"></span>
+          包参考
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_3_2_1" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_5_3_2_1" id="__nav_5_3_2_1_label" tabindex="0">
+          torch
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="4" aria-labelledby="__nav_5_3_2_1_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_5_3_2_1">
+          <span class="md-nav__icon md-icon"></span>
+          torch
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../torch/" class="md-nav__link">
+        介绍
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../torch_tensors/" class="md-nav__link">
+        Tensors
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../torch_random_sampling/" class="md-nav__link">
+        Random sampling
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../torch_serialization_parallelism_utilities/" class="md-nav__link">
+        Serialization, Parallelism, Utilities
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_3_2_1_5" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_5_3_2_1_5" id="__nav_5_3_2_1_5_label" tabindex="0">
+          Math operations
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="5" aria-labelledby="__nav_5_3_2_1_5_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_5_3_2_1_5">
+          <span class="md-nav__icon md-icon"></span>
+          Math operations
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../torch_math_operations_pointwise_ops/" class="md-nav__link">
+        Pointwise Ops
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../torch_math_operations_reduction_ops/" class="md-nav__link">
+        Reduction Ops
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../torch_math_operations_comparison_ops/" class="md-nav__link">
+        Comparison Ops
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../torch_math_operations_spectral_ops/" class="md-nav__link">
+        Spectral Ops
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../torch_math_operations_other_ops/" class="md-nav__link">
+        Other Operations
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../torch_math_operations_blas_lapack_ops/" class="md-nav__link">
+        BLAS and LAPACK Operations
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tensors/" class="md-nav__link">
+        torch.Tensor
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tensor_attributes/" class="md-nav__link">
+        Tensor Attributes
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../type_info/" class="md-nav__link">
+        数据类型信息
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../sparse/" class="md-nav__link">
+        torch.sparse
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../cuda/" class="md-nav__link">
+        torch.cuda
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../storage/" class="md-nav__link">
+        torch.Storage
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../nn/" class="md-nav__link">
+        torch.nn
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../nn_functional/" class="md-nav__link">
+        torch.nn.functional
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../nn_init/" class="md-nav__link">
+        torch.nn.init
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../optim/" class="md-nav__link">
+        torch.optim
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../autograd/" class="md-nav__link">
+        Automatic differentiation package - torch.autograd
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../distributed/" class="md-nav__link">
+        Distributed communication package - torch.distributed
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../distributions/" class="md-nav__link">
+        Probability distributions - torch.distributions
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../jit/" class="md-nav__link">
+        Torch Script
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../multiprocessing/" class="md-nav__link">
+        多进程包 - torch.multiprocessing
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../bottleneck/" class="md-nav__link">
+        torch.utils.bottleneck
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../checkpoint/" class="md-nav__link">
+        torch.utils.checkpoint
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../docs_cpp_extension/" class="md-nav__link">
+        torch.utils.cpp_extension
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../data/" class="md-nav__link">
+        torch.utils.data
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dlpack/" class="md-nav__link">
+        torch.utils.dlpack
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../hub/" class="md-nav__link">
+        torch.hub
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../model_zoo/" class="md-nav__link">
+        torch.utils.model_zoo
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../onnx/" class="md-nav__link">
+        torch.onnx
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../distributed_deprecated/" class="md-nav__link">
+        Distributed communication package (deprecated) - torch.distributed.deprecated
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_3_3" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_5_3_3" id="__nav_5_3_3_label" tabindex="0">
+          torchvision 参考
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_5_3_3_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_5_3_3">
+          <span class="md-nav__icon md-icon"></span>
+          torchvision 参考
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../docs_torchvision_ref/" class="md-nav__link">
+        目录
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../torchvision_datasets/" class="md-nav__link">
+        torchvision.datasets
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../torchvision_models/" class="md-nav__link">
+        torchvision.models
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../torchvision_transforms/" class="md-nav__link">
+        torchvision.transforms
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../torchvision_utils/" class="md-nav__link">
+        torchvision.utils
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+          PyTorch 0.4 中文文档
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_6">
+          <span class="md-nav__icon md-icon"></span>
+          PyTorch 0.4 中文文档
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6_1" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_6_1" id="__nav_6_1_label" tabindex="0">
+          笔记
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_6_1_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_6_1">
+          <span class="md-nav__icon md-icon"></span>
+          笔记
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../0.4/1/" class="md-nav__link">
+        自动求导机制
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../0.4/2/" class="md-nav__link">
+        广播语义
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../0.4/3/" class="md-nav__link">
+        CUDA 语义
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../0.4/4/" class="md-nav__link">
+        扩展 PyTorch
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../0.4/5/" class="md-nav__link">
+        常见问题
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../0.4/6/" class="md-nav__link">
+        多进程最佳实践
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../0.4/7/" class="md-nav__link">
+        序列化语义
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../0.4/8/" class="md-nav__link">
+        Windows 常见问题
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6_2" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_6_2" id="__nav_6_2_label" tabindex="0">
+          包参考
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_6_2_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_6_2">
+          <span class="md-nav__icon md-icon"></span>
+          包参考
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../0.4/10/" class="md-nav__link">
+        Torch
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../0.4/11/" class="md-nav__link">
+        torch.Tensor
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../0.4/12/" class="md-nav__link">
+        Tensor Attributes
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../0.4/13/" class="md-nav__link">
+        torch.sparse
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../0.4/14/" class="md-nav__link">
+        torch.cuda
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../0.4/15/" class="md-nav__link">
+        torch.Storage
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../0.4/16/" class="md-nav__link">
+        torch.nn
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../0.4/17/" class="md-nav__link">
+        torch.nn.functional
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../0.4/18/" class="md-nav__link">
+        自动差异化包 - torch.autograd
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../0.4/19/" class="md-nav__link">
+        torch.optim
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../0.4/20/" class="md-nav__link">
+        torch.nn.init
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../0.4/21/" class="md-nav__link">
+        torch.distributions
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../0.4/22/" class="md-nav__link">
+        Multiprocessing 包 - torch.multiprocessing
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../0.4/23/" class="md-nav__link">
+        分布式通讯包 - torch.distributed
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../0.4/24/" class="md-nav__link">
+        torch.utils.bottleneck
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../0.4/25/" class="md-nav__link">
+        torch.utils.checkpoint
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../0.4/26/" class="md-nav__link">
+        torch.utils.cpp_extension
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../0.4/27/" class="md-nav__link">
+        torch.utils.data
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../0.4/28/" class="md-nav__link">
+        torch.utils.ffi
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../0.4/29/" class="md-nav__link">
+        torch.utils.model_zoo
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../0.4/30/" class="md-nav__link">
+        torch.onnx
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../0.4/31/" class="md-nav__link">
+        遗留包 - torch.legacy
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6_3" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_6_3" id="__nav_6_3_label" tabindex="0">
+          torchvision 参考
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_6_3_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_6_3">
+          <span class="md-nav__icon md-icon"></span>
+          torchvision 参考
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../0.4/33/" class="md-nav__link">
+        torchvision
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../0.4/34/" class="md-nav__link">
+        torchvision.datasets
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../0.4/35/" class="md-nav__link">
+        torchvision.models
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../0.4/36/" class="md-nav__link">
+        torchvision.transform
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../0.4/37/" class="md-nav__link">
+        torchvision.utils
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
+          PyTorch 0.3 中文文档 & 教程
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_7">
+          <span class="md-nav__icon md-icon"></span>
+          PyTorch 0.3 中文文档 & 教程
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../0.3/" class="md-nav__link">
+        目录
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7_2" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_7_2" id="__nav_7_2_label" tabindex="0">
+          中文教程
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_7_2_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_7_2">
+          <span class="md-nav__icon md-icon"></span>
+          中文教程
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7_2_1" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_7_2_1" id="__nav_7_2_1_label" tabindex="0">
+          初学者教程
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_7_2_1_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_7_2_1">
+          <span class="md-nav__icon md-icon"></span>
+          初学者教程
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7_2_1_1" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_7_2_1_1" id="__nav_7_2_1_1_label" tabindex="0">
+          PyTorch 深度学习: 60 分钟极速入门教程
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="4" aria-labelledby="__nav_7_2_1_1_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_7_2_1_1">
+          <span class="md-nav__icon md-icon"></span>
+          PyTorch 深度学习: 60 分钟极速入门教程
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../0.3/deep_learning_60min_blitz/" class="md-nav__link">
+        介绍
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../0.3/blitz_tensor_tutorial/" class="md-nav__link">
+        PyTorch 是什么？
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../0.3/blitz_autograd_tutorial/" class="md-nav__link">
+        自动求导: 自动微分
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../0.3/blitz_neural_networks_tutorial/" class="md-nav__link">
+        神经网络
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../0.3/blitz_cifar10_tutorial/" class="md-nav__link">
+        训练一个分类器
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../0.3/blitz_data_parallel_tutorial/" class="md-nav__link">
+        可选: 数据并行
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7_2_1_2" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_7_2_1_2" id="__nav_7_2_1_2_label" tabindex="0">
+          PyTorch for former Torch users
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="4" aria-labelledby="__nav_7_2_1_2_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_7_2_1_2">
+          <span class="md-nav__icon md-icon"></span>
+          PyTorch for former Torch users
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../0.3/former_torchies_tutorial/" class="md-nav__link">
+        介绍
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../0.3/former_torchies_tensor_tutorial/" class="md-nav__link">
+        Tensors
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../0.3/former_torchies_autograd_tutorial/" class="md-nav__link">
+        Autograd (自动求导)
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../0.3/former_torchies_nn_tutorial/" class="md-nav__link">
+        nn package
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../0.3/former_torchies_parallelism_tutorial/" class="md-nav__link">
+        Multi-GPU examples
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7_2_1_3" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_7_2_1_3" id="__nav_7_2_1_3_label" tabindex="0">
+          跟着例子学习 PyTorch
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="4" aria-labelledby="__nav_7_2_1_3_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_7_2_1_3">
+          <span class="md-nav__icon md-icon"></span>
+          跟着例子学习 PyTorch
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../0.3/pytorch_with_examples/" class="md-nav__link">
+        介绍
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../0.3/pytorch_with_examples_warm-up-numpy/" class="md-nav__link">
+        Warm-up: numpy
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../0.3/pytorch_with_examples_pytorch-tensors/" class="md-nav__link">
+        PyTorch: Tensors
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../0.3/pytorch_with_examples_pytorch-variables-and-autograd/" class="md-nav__link">
+        PyTorch: 变量和autograd
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../0.3/pytorch_with_examples_pytorch-defining-new-autograd-functions/" class="md-nav__link">
+        PyTorch: 定义新的autograd函数
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../0.3/pytorch_with_examples_tensorflow-static-graphs/" class="md-nav__link">
+        TensorFlow: 静态图
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../0.3/pytorch_with_examples_pytorch-nn/" class="md-nav__link">
+        PyTorch: nn包
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../0.3/pytorch_with_examples_pytorch-optim/" class="md-nav__link">
+        PyTorch: optim包
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../0.3/pytorch_with_examples_pytorch-custom-nn-modules/" class="md-nav__link">
+        PyTorch: 定制化nn模块
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../0.3/pytorch_with_examples_pytorch-control-flow-weight-sharing/" class="md-nav__link">
+        PyTorch: 动态控制流程 - 权重共享
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../0.3/transfer_learning_tutorial/" class="md-nav__link">
+        迁移学习教程
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../0.3/data_loading_tutorial/" class="md-nav__link">
+        数据加载和处理教程
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7_2_1_6" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_7_2_1_6" id="__nav_7_2_1_6_label" tabindex="0">
+          针对NLP的Pytorch深度学习
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="4" aria-labelledby="__nav_7_2_1_6_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_7_2_1_6">
+          <span class="md-nav__icon md-icon"></span>
+          针对NLP的Pytorch深度学习
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../0.3/deep_learning_nlp_tutorial/" class="md-nav__link">
+        介绍
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../0.3/nlp_pytorch_tutorial/" class="md-nav__link">
+        PyTorch介绍
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../0.3/nlp_deep_learning_tutorial/" class="md-nav__link">
+        PyTorch深度学习
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../0.3/nlp_word_embeddings_tutorial/" class="md-nav__link">
+        词汇嵌入:编码词汇语义
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../0.3/nlp_sequence_models_tutorial/" class="md-nav__link">
+        序列模型和 LSTM 网络(长短记忆网络）
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../0.3/nlp_advanced_tutorial/" class="md-nav__link">
+        高级教程: 作出动态决策和 Bi-LSTM CRF
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7_2_2" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_7_2_2" id="__nav_7_2_2_label" tabindex="0">
+          中级教程
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_7_2_2_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_7_2_2">
+          <span class="md-nav__icon md-icon"></span>
+          中级教程
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../0.3/char_rnn_classification_tutorial/" class="md-nav__link">
+        用字符级RNN分类名称
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../0.3/char_rnn_generation_tutorial/" class="md-nav__link">
+        基与字符级RNN(Char-RNN）的人名生成
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../0.3/seq2seq_translation_tutorial/" class="md-nav__link">
+        用基于注意力机制的seq2seq神经网络进行翻译
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../0.3/reinforcement_q_learning/" class="md-nav__link">
+        强化学习(DQN）教程
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../0.3/dist_tuto/" class="md-nav__link">
+        Writing Distributed Applications with PyTorch
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../0.3/spatial_transformer_tutorial/" class="md-nav__link">
+        空间转换网络 (Spatial Transformer Networks) 教程
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7_2_3" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_7_2_3" id="__nav_7_2_3_label" tabindex="0">
+          高级教程
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_7_2_3_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_7_2_3">
+          <span class="md-nav__icon md-icon"></span>
+          高级教程
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../0.3/neural_style_tutorial/" class="md-nav__link">
+        用 PyTorch 做 神经转换 (Neural Transfer)
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../0.3/numpy_extensions_tutorial/" class="md-nav__link">
+        使用 numpy 和 scipy 创建扩展
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../0.3/super_resolution_with_caffe2/" class="md-nav__link">
+        使用 ONNX 将模型从 PyTorch 迁移到 Caffe2 和 Mobile
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../0.3/c_extension/" class="md-nav__link">
+        为 pytorch 自定义 C 扩展
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7_3" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_7_3" id="__nav_7_3_label" tabindex="0">
+          中文文档
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_7_3_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_7_3">
+          <span class="md-nav__icon md-icon"></span>
+          中文文档
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7_3_1" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_7_3_1" id="__nav_7_3_1_label" tabindex="0">
+          介绍
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_7_3_1_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_7_3_1">
+          <span class="md-nav__icon md-icon"></span>
+          介绍
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../0.3/notes_autograd/" class="md-nav__link">
+        自动求导机制
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../0.3/notes_broadcasting/" class="md-nav__link">
+        广播语义
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../0.3/notes_cuda/" class="md-nav__link">
+        CUDA 语义
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../0.3/notes_extending/" class="md-nav__link">
+        扩展 PyTorch
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../0.3/notes_multiprocessing/" class="md-nav__link">
+        多进程的最佳实践
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../0.3/notes_serialization/" class="md-nav__link">
+        序列化语义
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7_3_2" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_7_3_2" id="__nav_7_3_2_label" tabindex="0">
+          Package 参考
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_7_3_2_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_7_3_2">
+          <span class="md-nav__icon md-icon"></span>
+          Package 参考
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../0.3/torch/" class="md-nav__link">
+        torch
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../0.3/tensors/" class="md-nav__link">
+        torch.Tensor
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../0.3/sparse/" class="md-nav__link">
+        torch.sparse
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../0.3/storage/" class="md-nav__link">
+        torch.Storage
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../0.3/nn/" class="md-nav__link">
+        torch.nn
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../0.3/optim/" class="md-nav__link">
+        torch.optim
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../0.3/autograd/" class="md-nav__link">
+        Automatic differentiation package - torch.autograd
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../0.3/distributions/" class="md-nav__link">
+        Probability distributions - torch.distributions
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../0.3/multiprocessing/" class="md-nav__link">
+        Multiprocessing package - torch.multiprocessing
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../0.3/distributed/" class="md-nav__link">
+        Distributed communication package - torch.distributed
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../0.3/legacy/" class="md-nav__link">
+        Legacy package - torch.legacy
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../0.3/cuda/" class="md-nav__link">
+        torch.cuda
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../0.3/ffi/" class="md-nav__link">
+        torch.utils.ffi
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../0.3/data/" class="md-nav__link">
+        torch.utils.data
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../0.3/model_zoo/" class="md-nav__link">
+        torch.utils.model_zoo
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../0.3/onnx/" class="md-nav__link">
+        torch.onnx
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7_3_3" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_7_3_3" id="__nav_7_3_3_label" tabindex="0">
+          torchvision 参考
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_7_3_3_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_7_3_3">
+          <span class="md-nav__icon md-icon"></span>
+          torchvision 参考
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../0.3/torchvision/" class="md-nav__link">
+        torchvision
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../0.3/datasets/" class="md-nav__link">
+        torchvision.datasets
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../0.3/models/" class="md-nav__link">
+        torchvision.models
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../0.3/transforms/" class="md-nav__link">
+        torchvision.transforms
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../0.3/utils/" class="md-nav__link">
+        torchvision.utils
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="0">
+          PyTorch 0.2 中文文档
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_8">
+          <span class="md-nav__icon md-icon"></span>
+          PyTorch 0.2 中文文档
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../0.2/" class="md-nav__link">
+        介绍
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8_2" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_8_2" id="__nav_8_2_label" tabindex="0">
+          说明
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_8_2_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_8_2">
+          <span class="md-nav__icon md-icon"></span>
+          说明
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../0.2/notes/autograd/" class="md-nav__link">
+        自动求导机制
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../0.2/notes/cuda/" class="md-nav__link">
+        CUDA语义
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../0.2/notes/extending/" class="md-nav__link">
+        扩展PyTorch
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../0.2/notes/multiprocessing/" class="md-nav__link">
+        多进程最佳实践
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../0.2/notes/serialization/" class="md-nav__link">
+        序列化语义
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8_3" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_8_3" id="__nav_8_3_label" tabindex="0">
+          PACKAGE参考
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_8_3_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_8_3">
+          <span class="md-nav__icon md-icon"></span>
+          PACKAGE参考
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../0.2/package_references/torch/" class="md-nav__link">
+        torch
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../0.2/package_references/Tensor/" class="md-nav__link">
+        torch.Tensor
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../0.2/package_references/Storage/" class="md-nav__link">
+        torch.Storage
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../0.2/package_references/torch-nn/" class="md-nav__link">
+        torch.nn
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../0.2/package_references/functional/" class="md-nav__link">
+        torch.nn.functional
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../0.2/package_references/torch-autograd/" class="md-nav__link">
+        torch.autograd
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../0.2/package_references/torch-optim/" class="md-nav__link">
+        torch.optim
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../0.2/package_references/nn_init/" class="md-nav__link">
+        torch.nn.init
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../0.2/package_references/torch-multiprocessing/" class="md-nav__link">
+        torch.multiprocessing
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../0.2/package_references/legacy/" class="md-nav__link">
+        torch.legacy
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../0.2/package_references/torch-cuda/" class="md-nav__link">
+        torch.cuda
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../0.2/package_references/ffi/" class="md-nav__link">
+        torch.utils.ffi
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../0.2/package_references/data/" class="md-nav__link">
+        torch.utils.data
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../0.2/package_references/model_zoo/" class="md-nav__link">
+        torch.utils.model_zoo
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8_4" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_8_4" id="__nav_8_4_label" tabindex="0">
+          TORCHVISION参考
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_8_4_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_8_4">
+          <span class="md-nav__icon md-icon"></span>
+          TORCHVISION参考
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../0.2/torchvision/torchvision/" class="md-nav__link">
+        torchvision
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../0.2/torchvision/torchvision-datasets/" class="md-nav__link">
+        torchvision.datasets
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../0.2/torchvision/torchvision-models/" class="md-nav__link">
+        torchvision.models
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../0.2/torchvision/torchvision-transform/" class="md-nav__link">
+        torchvision.transforms
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../0.2/torchvision/torchvision-utils/" class="md-nav__link">
+        torchvision.utils
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../0.2/acknowledgement/" class="md-nav__link">
+        致谢
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../contrib/" class="md-nav__link">
+        贡献者
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="https://www.apachecn.org/about/" class="md-nav__link">
+        关于我们
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="https://docs.apachecn.org" class="md-nav__link">
+        中文资源合集
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#c" class="md-nav__link">
+    在C ++中实现自定义运算符
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#torchscript" class="md-nav__link">
+    使用TorchScript注册自定义运算符
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_1" class="md-nav__link">
+    构建自定义运算符
+  </a>
+  
+    <nav class="md-nav" aria-label="构建自定义运算符">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cmake" class="md-nav__link">
+    用CMake建设
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#pythontorchscript" class="md-nav__link">
+    在Python中使用TorchScript自定义运算符
+  </a>
+  
+    <nav class="md-nav" aria-label="在Python中使用TorchScript自定义运算符">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#_2" class="md-nav__link">
+    使用带有跟踪的自定义运算符
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_3" class="md-nav__link">
+    使用自定义操作符和脚本
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#c-torchscript" class="md-nav__link">
+    在C ++中使用TorchScript自定义运算符
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_4" class="md-nav__link">
+    结论
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#a" class="md-nav__link">
+    附录A：构建自定义运算符的更多方法
+  </a>
+  
+    <nav class="md-nav" aria-label="附录A：构建自定义运算符的更多方法">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#jit" class="md-nav__link">
+    使用JIT编译构建
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#setuptools" class="md-nav__link">
+    使用Setuptools构建
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+  
+    <a href="https://github.com/apachecn/pytorch-doc-zh/edit/master/docs/1.0/torch_script_custom_ops.md" title="Edit this page" class="md-content__button md-icon">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 20H6V4h7v5h5v3.1l2-2V8l-6-6H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h4v-2m10.2-7c.1 0 .3.1.4.2l1.3 1.3c.2.2.2.6 0 .8l-1 1-2.1-2.1 1-1c.1-.1.2-.2.4-.2m0 3.9L14.1 23H12v-2.1l6.1-6.1 2.1 2.1Z"/></svg>
+    </a>
+  
+  
+    
+      
+    
+    <a href="https://github.com/apachecn/pytorch-doc-zh/raw/master/docs/1.0/torch_script_custom_ops.md" title="View source of this page" class="md-content__button md-icon">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M17 18c.56 0 1 .44 1 1s-.44 1-1 1-1-.44-1-1 .44-1 1-1m0-3c-2.73 0-5.06 1.66-6 4 .94 2.34 3.27 4 6 4s5.06-1.66 6-4c-.94-2.34-3.27-4-6-4m0 6.5a2.5 2.5 0 0 1-2.5-2.5 2.5 2.5 0 0 1 2.5-2.5 2.5 2.5 0 0 1 2.5 2.5 2.5 2.5 0 0 1-2.5 2.5M9.27 20H6V4h7v5h5v4.07c.7.08 1.36.25 2 .49V8l-6-6H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h4.5a8.15 8.15 0 0 1-1.23-2Z"/></svg>
+    </a>
+  
+
+
+  <h1>Extending TorchScript with Custom C-- Operators</h1>
+
+<div class="wwads-cn wwads-horizontal" data-id="206" style="max-width:680px"></div>
+<p>＃使用自定义C++ 运算符扩展 TorchScript</p>
+<blockquote>
+<p>作者：<a href="https://github.com/pytorch">PyTorch</a></p>
+<p>译者：<a href="https://github.com/apachecn">ApacheCN</a></p>
+</blockquote>
+<p>PyTorch1.0版本向 PyTorch 引入了一个名为 [TorchScript](https://pytorch.org/docs/master/jit.html）的新编程模型。TorchScript是Python编程语言的一个子集，可以通过TorchScript编译器进行解析，编译和优化。此外，已编译的TorchScript模型可以选择序列化为磁盘文件格式，您可以随后从纯C++(以及Python）程序进行加载和运行以进行推理。</p>
+<p>TorchScript支持由<code>torch</code>包提供的大量操作，允许您将多种复杂模型纯粹表示为PyTorch的“标准库”中的一系列张量运算。然而，有时您可能会发现需要使用自定义C ++或CUDA函数扩展TorchScript。虽然我们建议您使用此这个选项时只在您的想法无法(足够有效）表达为一个简单的Python函数时，我们确实提供了一个非常友好和简单的界面，使用<a href="https//pytorch.org/cppdocs/#aten">ATen</a> 定义自定义C++ 和 CUDA 内核，PyTorch 的高性能C ++张量库。一旦绑定到TorchScript，您可以将这些自定义内核(或“ops”)嵌入到您的TorchScript模型中，并以Python和c++的序列化形式直接执行它们。</p>
+<p>以下段落给出了一个编写TorchScript自定义操作的示例，以调用[OpenCV](https://www.opencv.org），这是一个用C ++编写的计算机视觉库。我们将讨论如何在C ++中使用张量，如何有效地将它们转换为第三方张量格式(在这种情况下，OpenCV [<code>](＃id1）Mat</code>s），如何在TorchScript运行时注册运算符，最后如何编译运算符并在Python和C ++中使用它。</p>
+<p>本教程假设您通过<code>pip</code>或<code>conda</code>安装了PyTorch 1.0的_preview release_。有关获取最新版PyTorch 1.0 \的说明，请参阅 [https://pytorch.org/get-started/locally](https://pytorch.org/get-started/locally）。或者，您可以从源代码编译PyTorch。[此文件](https://github.com/pytorch/pytorch/blob/master/CONTRIBUTING.md）中的文档将为您提供帮助。</p>
+<h2 id="c">在C ++中实现自定义运算符</h2>
+<p>对于本教程，我们将公开[warpPerspective](https://docs.opencv.org/2.4/modules/imgproc/doc/geometric_transformations.html#warpperspective）函数，该函数将透视变换应用于图像， OpenCV to TorchScript作为自定义运算符。第一步是用C ++编写自定义运算符的实现。让我们调用这个实现<code>op.cpp</code>的文件，并使它看起来像这样：</p>
+<pre><code class="language-py">#include &lt;opencv2/opencv.hpp&gt;
+#include &lt;torch/script.h&gt;
+
+torch::Tensor warp_perspective(torch::Tensor image, torch::Tensor warp) {
+  cv::Mat image_mat(/*rows=*/image.size(0),
+                    /*cols=*/image.size(1),
+                    /*type=*/CV_32FC1,
+                    /*data=*/image.data&lt;float&gt;());
+  cv::Mat warp_mat(/*rows=*/warp.size(0),
+                   /*cols=*/warp.size(1),
+                   /*type=*/CV_32FC1,
+                   /*data=*/warp.data&lt;float&gt;());
+
+  cv::Mat output_mat;
+  cv::warpPerspective(image_mat, output_mat, warp_mat, /*dsize=*/{8, 8});
+
+  torch::Tensor output = torch::from_blob(output_mat.ptr&lt;float&gt;(), /*sizes=*/{8, 8});
+  return output.clone();
+}
+
+</code></pre>
+<p>该运算符的代码很短。在文件的顶部，我们包含OpenCV头文件 <code>opencv2/opencv.hpp</code>，以及 <code>torch/script.h</code> 头文件，它展示了我们需要编写自定义TorchScript运算符的 PyTorch C++ API所需的所有好东西.我们的函数 <code>warp_perspective</code> 有两个参数：输入<code>image</code>和我们希望应用于图像的<code>warp</code>变换矩阵。这些输入的类型是<code>torch::Tensor</code>，PyTorch在C++中的张量类型(它也是Python中所有张量的基础类型）。我们的<code>warp_perspective</code>函数的返回类型也将是<code>torch::Tensor</code>。</p>
+<p>提示</p>
+<p>有关ATen的更多信息，请参阅[本说明](https://pytorch.org/cppdocs/notes/tensor_basics.html），ATen是为PyTorch提供<code>Tensor</code>类的库。此外，[本教程](https://pytorch.org/cppdocs/notes/tensor_creation.html）描述了如何在C ++中分配和初始化新的张量对象(此运算符不需要）。</p>
+<p>注意</p>
+<p>TorchScript编译器了解固定数量的类型。只有这些类型可以用作自定义运算符的参数。目前这些类型是：<code>torch::Tensor</code>，<code>torch::Scalar</code>，<code>double</code>，<code>int64_t</code>和<code>std::vector</code>这些类型。注意__only__<code>double</code>和__not__<code>float</code>和__only__<code>int64_t</code>和__not__支持其他整数类型，如<code>int</code>，<code>short</code>或<code>long</code>。</p>
+<p>在我们的函数内部，我们需要做的第一件事是将PyTorch张量转换为OpenCV矩阵，因为OpenCV的 <code>warpPerspective</code> 期望<code>cv::Mat</code>对象作为输入。幸运的是，有一种方法可以做到这一点<strong>而无需复制任何</strong>数据。在前几行中，</p>
+<pre><code>cv::Mat image_mat(/*rows=*/image.size(0),
+                  /*cols=*/image.size(1),
+                  /*type=*/CV_32FC1,
+                  /*data=*/image.data&lt;float&gt;());
+
+</code></pre>
+<p>我们正在调用OpenCV <code>Mat</code> 类的 <a href="https://docs.opencv.org/trunk/d3/d63/classcv_1_1Mat.html#a922de793eabcec705b3579c5f95a643e">这个构造函数</a> 将我们的张量转换为<code>Mat</code>对象。我们传递原始<code>image</code> tensor的行数和列数，数据类型(我们将在本例中将其定义为<code>float32</code>），最后是一个指向底层数据的原始指针 - 一个<code>float *</code>。<code>Mat</code>类的这个构造函数的特殊之处在于它不复制输入数据。相反，它将简单地为在“Mat”上执行的所有操作引用该内存。如果对<code>image_mat</code>执行in-place操作，则这将反映在原始<code>image</code>张量中(反之亦然）。这允许我们使用库的本机矩阵类型调用后续的OpenCV例程，即使我们实际上将数据存储在PyTorch张量中。我们重复此过程将<code>warp</code> PyTorch张量转换为<code>warp_mat</code> OpenCV矩阵：</p>
+<pre><code>cv::Mat warp_mat(/*rows=*/warp.size(0),
+                 /*cols=*/warp.size(1),
+                 /*type=*/CV_32FC1,
+                 /*data=*/warp.data&lt;float&gt;());
+
+</code></pre>
+<p>接下来，我们准备调用我们非常渴望在TorchScript中使用的OpenCV函数：<code>warpPerspective</code>。为此，我们传递OpenCV函数<code>image_mat</code>和<code>warp_mat</code>矩阵，以及一个名为<code>output_mat</code>的空输出矩阵。我们还指定了我们想要输出矩阵(图像）的大小<code>dsize</code>。对于此示例，它被硬编码为<code>8 x 8</code>：</p>
+<pre><code>cv::Mat output_mat;
+cv::warpPerspective(image_mat, output_mat, warp_mat, /*dsize=*/{8, 8});
+
+</code></pre>
+<p>我们的自定义运算符实现的最后一步是将<code>output_mat</code>转换回PyTorch张量，以便我们可以在PyTorch中进一步使用它。这与我们之前在另一个方向转换时所做的惊人相似。PyTorch提供了一个<code>torch::from_blob</code>方法。在本例中，_blob_意为指向内存的一些不透明的平面指针，我们想将其解释为PyTorch张量。对<code>torch::from_blob</code>的调用如下所示：</p>
+<pre><code>torch::from_blob(output_mat.ptr&lt;float&gt;(), /*sizes=*/{8, 8})
+
+</code></pre>
+<p>我们在OpenCV <code>Mat</code>类上使用<code>.ptr&amp;lt;float&amp;gt;()</code>方法来获取指向底层数据的原始指针(就像之前的PyTorch张量的<code>.data&amp;lt;float&amp;gt;()</code>一样）。我们还指定了张量的输出形状，我们将其硬编码为<code>8 x 8</code>。然后<code>torch::from_blob</code>的输出为<code>torch::Tensor</code>，指向OpenCV矩阵拥有的内存。</p>
+<p>在从运算符实现返回此张量之前，我们必须在张量上调用<code>.clone()</code>来执行基础数据的内存复制。原因是<code>torch::from_blob</code>返回不拥有其数据的张量。此时，数据仍归OpenCV矩阵所有。但是，此OpenCV矩阵将超出范围并在函数末尾取消分配。如果我们按原样返回<code>output</code>张量，那么当我们在函数外部使用它时，它将指向无效的内存。调用<code>.clone()</code>返回一个新的张量，其中包含新张量所拥有的原始数据的副本。因此返回外部世界是安全的。</p>
+<h2 id="torchscript">使用TorchScript注册自定义运算符</h2>
+<p>现在已经在C ++中实现了我们的自定义运算符，我们需要_使用TorchScript运行时和编译器注册它_。这将允许TorchScript编译器在TorchScript代码中解析对自定义运算符的引用。注册非常简单。对于我们的情况，我们需要写：</p>
+<pre><code>static auto registry =
+  torch::jit::RegisterOperators(&quot;my_ops::warp_perspective&quot;, &amp;warp_perspective);
+
+</code></pre>
+<p>在我们的<code>op.cpp</code>文件的全局范围内的某个地方。这将创建一个全局变量<code>registry</code>，它将在其构造函数中使用TorchScript注册我们的运算符(即每个程序只注册一次）。我们指定运算符的名称，以及指向其实现的指针(我们之前编写的函数）。该名称由两部分组成：<em>namespace</em>(<code>my_ops</code>）和我们正在注册的特定运算符的名称(<code>warp_perspective</code>）。命名空间和运算符名称由两个冒号(<code>::</code>）分隔。</p>
+<p>注意</p>
+<p>如果要注册多个运算符，可以在构造函数之后将调用链接到<code>.op()</code>：</p>
+<pre><code>static auto registry =
+  torch::jit::RegisterOperators(&quot;my_ops::warp_perspective&quot;, &amp;warp_perspective)
+  .op(&quot;my_ops::another_op&quot;, &amp;another_op)
+  .op(&quot;my_ops::and_another_op&quot;, &amp;and_another_op);
+
+</code></pre>
+<p>在后台，<code>RegisterOperators</code>将执行一些相当复杂的C++模板元编程魔术技巧来推断我们传递它的函数指针的参数和返回值类型(<code>&amp;warp_perspective</code>）。该信息用于为我们的运营商形成 <em>function schema</em>。函数模式是运算符的结构化表示 - 一种“签名”或“原型” - 由 TorchScript 编译器用于验证 TorchScript程序中的正确性。</p>
+<h2 id="_1">构建自定义运算符</h2>
+<p>现在我们已经用C++ 实现了我们的自定义运算符并编写了它的注册代码，现在是时候将运算符构建到一个(共享）库中，我们可以将它加载到Python中进行研究和实验，或者加载到C ++中以便在非Python中进行推理环境。使用纯CMake或像<code>setuptools</code>这样的Python替代方法，存在多种构建运算符的方法。为简洁起见，以下段落仅讨论CMake方法。本教程的附录深入研究了基于Python的替代方案。</p>
+<h3 id="cmake">用CMake建设</h3>
+<p>要使用 <a href="https://cmake.org">CMake</a> 构建系统将自定义运算符构建到共享库中，我们需要编写一个简短的<code>CMakeLists.txt</code>文件并将其与我们之前的<code>op.cpp</code>文件放在一起。为此，让我们商定一个如下所示的目录结构：</p>
+<pre><code>warp-perspective/
+  op.cpp
+  CMakeLists.txt
+
+</code></pre>
+<p>此外，请确保从 <a href="https://pytorch.org/get-started/locally">pytorch.org</a> 获取最新版本的LibTorch发行版，该发行版包含PyTorch的C++ 库和 CMake 构建文件。将解压缩的分发放在文件系统中可访问的位置。以下段落将该位置称为<code>/path/to/libtorch</code>。我们的<code>CMakeLists.txt</code>文件的内容应该如下：</p>
+<pre><code>cmake_minimum_required(VERSION 3.1 FATAL_ERROR)
+project(warp_perspective)
+
+find_package(Torch REQUIRED)
+find_package(OpenCV REQUIRED)
+
+# Define our library target
+add_library(warp_perspective SHARED op.cpp)
+# Enable C++11
+target_compile_features(warp_perspective PRIVATE cxx_range_for)
+# Link against LibTorch
+target_link_libraries(warp_perspective &quot;${TORCH_LIBRARIES}&quot;)
+# Link against OpenCV
+target_link_libraries(warp_perspective opencv_core opencv_imgproc)
+
+</code></pre>
+<p>警告</p>
+<p>此设置对构建环境做出一些假设，特别是与OpenCV的安装有关的内容。上面的<code>CMakeLists.txt</code>文件在运行Ubuntu Xenial的Docker容器内进行了测试，并通过<code>apt</code>安装了<code>libopencv-dev</code>。如果它不适合您并且您感到卡住，请使用<a href="https://github.com/pytorch/extension-script">随附教程库</a>中的<code>Dockerfile</code>构建一个隔离的，可重现的环境，在其中使用本教程中的代码。如果您遇到进一步的麻烦，请在教程库中提出问题或在<a href="https://discuss.pytorch.org/">我们的论坛</a>中发帖提问。</p>
+<p>要现在构建我们的运算符，我们可以从<code>warp_perspective</code>文件夹运行以下命令：</p>
+<pre><code>$ mkdir build
+$ cd build
+$ cmake -DCMAKE_PREFIX_PATH=/path/to/libtorch ..
+-- The C compiler identification is GNU 5.4.0
+-- The CXX compiler identification is GNU 5.4.0
+-- Check for working C compiler: /usr/bin/cc
+-- Check for working C compiler: /usr/bin/cc -- works
+-- Detecting C compiler ABI info
+-- Detecting C compiler ABI info - done
+-- Detecting C compile features
+-- Detecting C compile features - done
+-- Check for working CXX compiler: /usr/bin/c++
+-- Check for working CXX compiler: /usr/bin/c++ -- works
+-- Detecting CXX compiler ABI info
+-- Detecting CXX compiler ABI info - done
+-- Detecting CXX compile features
+-- Detecting CXX compile features - done
+-- Looking for pthread.h
+-- Looking for pthread.h - found
+-- Looking for pthread_create
+-- Looking for pthread_create - not found
+-- Looking for pthread_create in pthreads
+-- Looking for pthread_create in pthreads - not found
+-- Looking for pthread_create in pthread
+-- Looking for pthread_create in pthread - found
+-- Found Threads: TRUE
+-- Found torch: /libtorch/lib/libtorch.so
+-- Configuring done
+-- Generating done
+-- Build files have been written to: /warp_perspective/build
+$ make -j
+Scanning dependencies of target warp_perspective
+[ 50%] Building CXX object CMakeFiles/warp_perspective.dir/op.cpp.o
+[100%] Linking CXX shared library libwarp_perspective.so
+[100%] Built target warp_perspective
+
+</code></pre>
+<p>这将在<code>build</code>文件夹中放置一个<code>libwarp_perspective.so</code>共享库文件。在上面的<code>cmake</code>命令中，您应该将<code>/path/to/libtorch</code>替换为解压缩的LibTorch分发的路径。</p>
+<p>我们将在下面详细介绍如何使用和调用我们的运算符，但为了尽早获得成功感，我们可以尝试在Python中运行以下代码：</p>
+<pre><code>&gt;&gt;&gt; import torch
+&gt;&gt;&gt; torch.ops.load_library(&quot;/path/to/libwarp_perspective.so&quot;)
+&gt;&gt;&gt; print(torch.ops.my_ops.warp_perspective)
+
+</code></pre>
+<p>这里，<code>/path/to/libwarp_perspective.so</code>应该是我们刚刚构建的<code>libwarp_perspective.so</code>共享库的相对路径或绝对路径。如果一切顺利，这应该打印出类似的东西</p>
+<pre><code>&lt;built-in method my_ops::warp_perspective of PyCapsule object at 0x7f618fc6fa50&gt;
+
+</code></pre>
+<p>这是我们稍后用来调用我们的自定义运算符的Python函数。</p>
+<h2 id="pythontorchscript">在Python中使用TorchScript自定义运算符</h2>
+<p>一旦我们的自定义运算符内置到共享库中，我们就可以在Python的TorchScript模型中使用此运算符。这有两个部分：首先将运算符加载到Python中，然后在TorchScript代码中使用运算符。</p>
+<p>您已经了解了如何将运算符导入Python：<code>torch.ops.load_library()</code>。此函数获取包含自定义运算符的共享库的路径，并将其加载到当前进程中。加载共享库还将执行我们放入自定义运算符实现文件的全局<code>RegisterOperators</code>对象的构造函数。这将使用TorchScript编译器注册我们的自定义运算符，并允许我们在TorchScript代码中使用该运算符。</p>
+<p>您可以将加载的运算符称为<code>torch.ops.&amp;lt;namespace&amp;gt;.&amp;lt;function&amp;gt;</code>，其中<code>&amp;lt;namespace&amp;gt;</code>是运算符名称的名称空间部分，<code>&amp;lt;function&amp;gt;</code>是运算符的函数名称。对于我们上面写的运算符，命名空间是<code>my_ops</code>和函数名<code>warp_perspective</code>，这意味着我们的运算符可用作<code>torch.ops.my_ops.warp_perspective</code>。虽然此函数可用于脚本或跟踪的TorchScript模块，但我们也可以在vanilla eager PyTorch中使用它并将其传递给常规的PyTorch张量：</p>
+<pre><code>&gt;&gt;&gt; import torch
+&gt;&gt;&gt; torch.ops.load_library(&quot;libwarp_perspective.so&quot;)
+&gt;&gt;&gt; torch.ops.my_ops.warp_perspective(torch.randn(32, 32), torch.rand(3, 3))
+tensor([[0.0000, 0.3218, 0.4611,  ..., 0.4636, 0.4636, 0.4636],
+ [0.3746, 0.0978, 0.5005,  ..., 0.4636, 0.4636, 0.4636],
+ [0.3245, 0.0169, 0.0000,  ..., 0.4458, 0.4458, 0.4458],
+ ...,
+ [0.1862, 0.1862, 0.1692,  ..., 0.0000, 0.0000, 0.0000],
+ [0.1862, 0.1862, 0.1692,  ..., 0.0000, 0.0000, 0.0000],
+ [0.1862, 0.1862, 0.1692,  ..., 0.0000, 0.0000, 0.0000]])
+
+</code></pre>
+<p>注意</p>
+<p>幕后发生的事情是，第一次在Python中访问<code>torch.ops.namespace.function</code>时，TorchScript编译器(在C ++版本中）将查看是否已注册函数<code>namespace::function</code>，如果已注册，则返回此函数的Python句柄，我们随后可以使用从Python调用我们的C ++运算符实现。这是TorchScript自定义运算符和C ++扩展之间的一个值得注意的区别：C ++扩展使用pybind11手动绑定，而TorchScript自定义ops由PyTorch本身绑定。 Pybind11为您提供了更多关于可以绑定到Python的类型和类的灵活性，因此建议用于纯粹的热切代码，但TorchScript操作不支持它。</p>
+<p>从这里开始，您可以在脚本或跟踪代码中使用自定义运算符，就像使用<code>torch</code>包中的其他函数一样。实际上，像<code>torch.matmul</code>这样的“标准库”函数与自定义运算符的注册路径大致相同，这使得自定义运算符在TorchScript中的使用方式和位置方面确实是一流公民。</p>
+<h3 id="_2">使用带有跟踪的自定义运算符</h3>
+<p>让我们首先将运算符嵌入到跟踪函数中。回想一下，对于跟踪，我们从一些香草Pytorch代码开始：</p>
+<pre><code>def compute(x, y, z):
+    return x.matmul(y) + torch.relu(z)
+
+</code></pre>
+<p>然后在其上调用<code>torch.jit.trace</code>。我们进一步传递<code>torch.jit.trace</code>一些示例输入，它将转发到我们的实现，以记录输入流经它时发生的操作序列。这样做的结果实际上是热切的PyTorch程序的“冻结”版本，TorchScript编译器可以进一步分析，优化和序列化：</p>
+<pre><code>&gt;&gt;&gt; inputs = [torch.randn(4, 8), torch.randn(8, 5), torch.randn(4, 5)]
+&gt;&gt;&gt; trace = torch.jit.trace(compute, inputs)
+&gt;&gt;&gt; print(trace.graph)
+graph(%x : Float(4, 8)
+ %y : Float(8, 5)
+ %z : Float(4, 5)) {
+ %3 : Float(4, 5) = aten::matmul(%x, %y)
+ %4 : Float(4, 5) = aten::relu(%z)
+ %5 : int = prim::Constant[value=1]()
+ %6 : Float(4, 5) = aten::add(%3, %4, %5)
+ return (%6);
+}
+
+</code></pre>
+<p>现在，令人兴奋的启示是我们可以简单地将我们的自定义运算符放入我们的PyTorch跟踪中，就像它是<code>torch.relu</code>或任何其他<code>torch</code>函数一样：</p>
+<pre><code>torch.ops.load_library(&quot;libwarp_perspective.so&quot;)
+
+def compute(x, y, z):
+    x = torch.ops.my_ops.warp_perspective(x, torch.eye(3))
+    return x.matmul(y) + torch.relu(z)
+
+</code></pre>
+<p>然后跟踪它：</p>
+<pre><code>&gt;&gt;&gt; inputs = [torch.randn(4, 8), torch.randn(8, 5), torch.randn(8, 5)]
+&gt;&gt;&gt; trace = torch.jit.trace(compute, inputs)
+&gt;&gt;&gt; print(trace.graph)
+graph(%x.1 : Float(4, 8)
+ %y : Float(8, 5)
+ %z : Float(8, 5)) {
+ %3 : int = prim::Constant[value=3]()
+ %4 : int = prim::Constant[value=6]()
+ %5 : int = prim::Constant[value=0]()
+ %6 : int[] = prim::Constant[value=[0, -1]]()
+ %7 : Float(3, 3) = aten::eye(%3, %4, %5, %6)
+ %x : Float(8, 8) = my_ops::warp_perspective(%x.1, %7)
+ %11 : Float(8, 5) = aten::matmul(%x, %y)
+ %12 : Float(8, 5) = aten::relu(%z)
+ %13 : int = prim::Constant[value=1]()
+ %14 : Float(8, 5) = aten::add(%11, %12, %13)
+ return (%14);
+ }
+
+</code></pre>
+<p>将TorchScript自定义操作集成到跟踪的PyTorch代码就像这样简单！</p>
+<h3 id="_3">使用自定义操作符和脚本</h3>
+<p>除了跟踪之外，另一种获得PyTorch程序的TorchScript表示的方法是直接在 TorchScript中编写代码_。 TorchScript在很大程度上是Python语言的一个子集，但有一些限制使得TorchScript编译器更容易推理程序。通过使用<code>@torch.jit.script</code>为自由函数和<code>@torch.jit.script_method</code>为类中的方法(必须也从<code>torch.jit.ScriptModule</code>派生）注释，将常规PyTorch代码转换为TorchScript。有关TorchScript注释的更多详细信息，请参见<a href="https://pytorch.org/docs/master/jit.html">此处</a></p>
+<p>使用TorchScript而不是跟踪的一个特殊原因是跟踪无法捕获PyTorch代码中的控制流。因此，让我们考虑一下这个使用控制流程的功能：</p>
+<pre><code>def compute(x, y):
+  if bool(x[0][0] == 42):
+      z = 5
+  else:
+      z = 10
+  return x.matmul(y) + z
+
+</code></pre>
+<p>要将此函数从vanilla PyTorch转换为TorchScript，我们使用<code>@torch.jit.script</code>对其进行注释：</p>
+<pre><code>@torch.jit.script
+def compute(x, y):
+  if bool(x[0][0] == 42):
+      z = 5
+  else:
+      z = 10
+  return x.matmul(y) + z
+
+</code></pre>
+<p>这将及时将<code>compute</code>函数编译成图表示，我们可以在<code>compute.graph</code>属性中检查它：</p>
+<pre><code>&gt;&gt;&gt; compute.graph
+graph(%x : Dynamic
+ %y : Dynamic) {
+ %14 : int = prim::Constant[value=1]()
+ %2 : int = prim::Constant[value=0]()
+ %7 : int = prim::Constant[value=42]()
+ %z.1 : int = prim::Constant[value=5]()
+ %z.2 : int = prim::Constant[value=10]()
+ %4 : Dynamic = aten::select(%x, %2, %2)
+ %6 : Dynamic = aten::select(%4, %2, %2)
+ %8 : Dynamic = aten::eq(%6, %7)
+ %9 : bool = prim::TensorToBool(%8)
+ %z : int = prim::If(%9)
+ block0() {
+ -&gt; (%z.1)
+ }
+ block1() {
+ -&gt; (%z.2)
+ }
+ %13 : Dynamic = aten::matmul(%x, %y)
+ %15 : Dynamic = aten::add(%13, %z, %14)
+ return (%15);
+}
+
+</code></pre>
+<p>现在，就像以前一样，我们可以使用我们的自定义运算符，就像我们脚本代码中的任何其他函数一样：</p>
+<pre><code>torch.ops.load_library(&quot;libwarp_perspective.so&quot;)
+
+@torch.jit.script
+def compute(x, y):
+  if bool(x[0] == 42):
+      z = 5
+  else:
+      z = 10
+  x = torch.ops.my_ops.warp_perspective(x, torch.eye(3))
+  return x.matmul(y) + z
+
+</code></pre>
+<p>当TorchScript编译器看到对 <code>torch.ops.my_ops.warp_perspective</code> 的引用时，它将找到我们通过C++ 中的 <code>RegisterOperators</code> 对象注册的实现，并将其编译为其图表示：</p>
+<pre><code>&gt;&gt;&gt; compute.graph
+graph(%x.1 : Dynamic
+ %y : Dynamic) {
+ %20 : int = prim::Constant[value=1]()
+ %16 : int[] = prim::Constant[value=[0, -1]]()
+ %14 : int = prim::Constant[value=6]()
+ %2 : int = prim::Constant[value=0]()
+ %7 : int = prim::Constant[value=42]()
+ %z.1 : int = prim::Constant[value=5]()
+ %z.2 : int = prim::Constant[value=10]()
+ %13 : int = prim::Constant[value=3]()
+ %4 : Dynamic = aten::select(%x.1, %2, %2)
+ %6 : Dynamic = aten::select(%4, %2, %2)
+ %8 : Dynamic = aten::eq(%6, %7)
+ %9 : bool = prim::TensorToBool(%8)
+ %z : int = prim::If(%9)
+ block0() {
+ -&gt; (%z.1)
+ }
+ block1() {
+ -&gt; (%z.2)
+ }
+ %17 : Dynamic = aten::eye(%13, %14, %2, %16)
+ %x : Dynamic = my_ops::warp_perspective(%x.1, %17)
+ %19 : Dynamic = aten::matmul(%x, %y)
+ %21 : Dynamic = aten::add(%19, %z, %20)
+ return (%21);
+ }
+
+</code></pre>
+<p>请特别注意图表末尾对<code>my_ops::warp_perspective</code>的引用。</p>
+<p>注意
+TorchScript图表表示仍有可能发生变化。不要依赖它看起来像这样。</p>
+<p>当在Python中使用我们的自定义运算符时，这就是它。简而言之，您使用<code>torch.ops.load_library</code>导入包含操作符的库，并像跟踪或脚本化的TorchScript代码一样调用您的自定义操作，就像任何其他<code>torch</code>操作符一样。</p>
+<h2 id="c-torchscript">在C ++中使用TorchScript自定义运算符</h2>
+<p>TorchScript的一个有用功能是能够将模型序列化为磁盘文件。该文件可以通过线路发送，存储在文件系统中，更重要的是，可以动态反序列化和执行，而无需保留原始源代码。这可以在Python中实现，也可以在C ++中实现。为此，PyTorch为<a href="https://pytorch.org/cppdocs/">提供了一个纯C ++ API</a> ，用于反序列化以及执行TorchScript模型。如果您还没有，请阅读<a href="https://pytorch.org/tutorials/advanced/cpp_export.html">关于在C ++</a> 中加载和运行序列化TorchScript模型的教程，接下来的几段将构建。</p>
+<p>简而言之，即使从文件反序列化并在C ++中运行，自定义运算符也可以像常规<code>torch</code>运算符一样执行。对此的唯一要求是将我们之前构建的自定义操作符共享库与我们执行模型的C ++应用程序链接起来。在Python中，这只是调用<code>torch.ops.load_library</code>。在C ++中，您需要在您使用的任何构建系统中将共享库与主应用程序链接。以下示例将使用CMake展示此内容。</p>
+<p>注意</p>
+<p>从技术上讲，您也可以在运行时将共享库动态加载到C ++应用程序中，就像在Python中一样。在Linux上，<a href="https://tldp.org/HOWTO/Program-Library-HOWTO/dl-libraries.html">你可以用dlopen</a> 来做到这一点。在其他平台上存在等价物。</p>
+<p>在上面链接的C ++执行教程的基础上，让我们从一个文件中的最小C ++应用程序开始，<code>main.cpp</code>在我们的自定义操作符的不同文件夹中，加载并执行序列化的TorchScript模型：</p>
+<pre><code>#include &lt;torch/script.h&gt; // One-stop header.
+
+#include &lt;iostream&gt;
+#include &lt;memory&gt;
+
+int main(int argc, const char* argv[]) {
+  if (argc != 2) {
+    std::cerr &lt;&lt; &quot;usage: example-app &lt;path-to-exported-script-module&gt;\n&quot;;
+    return -1;
+  }
+//使用torch::jit::load()从文件反序列化ScriptModule。
+  std::shared_ptr&lt;torch::jit::script::Module&gt; module = torch::jit::load(argv[1]);
+  std::vector&lt;torch::jit::IValue&gt; inputs;
+  inputs.push_back(torch::randn({4, 8}));
+  inputs.push_back(torch::randn({8, 5}));
+
+  torch::Tensor output = module-&gt;forward(std::move(inputs)).toTensor();
+
+  std::cout &lt;&lt; output &lt;&lt; std::endl;
+}
+
+</code></pre>
+<p>连同一个小的<code>CMakeLists.txt</code>文件：</p>
+<pre><code>cmake_minimum_required(VERSION 3.1 FATAL_ERROR)
+project(example_app)
+
+find_package(Torch REQUIRED)
+
+add_executable(example_app main.cpp)
+target_link_libraries(example_app &quot;${TORCH_LIBRARIES}&quot;)
+target_compile_features(example_app PRIVATE cxx_range_for)
+
+</code></pre>
+<p>此时，我们应该能够构建应用程序：</p>
+<pre><code>$ mkdir build
+$ cd build
+$ cmake -DCMAKE_PREFIX_PATH=/path/to/libtorch ..
+-- The C compiler identification is GNU 5.4.0
+-- The CXX compiler identification is GNU 5.4.0
+-- Check for working C compiler: /usr/bin/cc
+-- Check for working C compiler: /usr/bin/cc -- works
+-- Detecting C compiler ABI info
+-- Detecting C compiler ABI info - done
+-- Detecting C compile features
+-- Detecting C compile features - done
+-- Check for working CXX compiler: /usr/bin/c++
+-- Check for working CXX compiler: /usr/bin/c++ -- works
+-- Detecting CXX compiler ABI info
+-- Detecting CXX compiler ABI info - done
+-- Detecting CXX compile features
+-- Detecting CXX compile features - done
+-- Looking for pthread.h
+-- Looking for pthread.h - found
+-- Looking for pthread_create
+-- Looking for pthread_create - not found
+-- Looking for pthread_create in pthreads
+-- Looking for pthread_create in pthreads - not found
+-- Looking for pthread_create in pthread
+-- Looking for pthread_create in pthread - found
+-- Found Threads: TRUE
+-- Found torch: /libtorch/lib/libtorch.so
+-- Configuring done
+-- Generating done
+-- Build files have been written to: /example_app/build
+$ make -j
+Scanning dependencies of target example_app
+[ 50%] Building CXX object CMakeFiles/example_app.dir/main.cpp.o
+[100%] Linking CXX executable example_app
+[100%] Built target example_app
+
+</code></pre>
+<p>并且在没有通过模型的情况下运行它：</p>
+<pre><code>$ ./example_app
+usage: example_app &lt;path-to-exported-script-module&gt;
+
+</code></pre>
+<p>接下来，让我们序列化我们之前编写的使用自定义运算符的脚本函数：</p>
+<pre><code>torch.ops.load_library(&quot;libwarp_perspective.so&quot;)
+
+@torch.jit.script
+def compute(x, y):
+  if bool(x[0][0] == 42):
+      z = 5
+  else:
+      z = 10
+  x = torch.ops.my_ops.warp_perspective(x, torch.eye(3))
+  return x.matmul(y) + z
+
+compute.save(&quot;example.pt&quot;)
+
+</code></pre>
+<p>最后一行将脚本函数序列化为名为“example.pt”的文件。如果我们将这个序列化模型传递给我们的C ++应用程序，我们可以立即运行它：</p>
+<pre><code>$ ./example_app example.pt
+terminate called after throwing an instance of 'torch::jit::script::ErrorReport'
+what():
+Schema not found for node. File a bug report.
+Node: %16 : Dynamic = my_ops::warp_perspective(%0, %19)
+
+</code></pre>
+<p>或者可能不是。也许还没有。当然！我们尚未将自定义运算符库与我们的应用程序相关联。我们现在就这样做，为了正确地执行此操作，让我们稍微更新一下我们的文件组织，如下所示：</p>
+<pre><code>example_app/
+  CMakeLists.txt
+  main.cpp
+  warp_perspective/
+    CMakeLists.txt
+    op.cpp
+
+</code></pre>
+<p>这将允许我们将<code>warp_perspective</code>库CMake目标添加为我们的应用程序目标的子目录。 <code>example_app</code>文件夹中的最上层<code>CMakeLists.txt</code>应如下所示：</p>
+<pre><code>cmake_minimum_required(VERSION 3.1 FATAL_ERROR)
+project(example_app)
+
+find_package(Torch REQUIRED)
+
+add_subdirectory(warp_perspective)
+
+add_executable(example_app main.cpp)
+target_link_libraries(example_app &quot;${TORCH_LIBRARIES}&quot;)
+target_link_libraries(example_app -Wl,--no-as-needed warp_perspective)
+target_compile_features(example_app PRIVATE cxx_range_for)
+
+</code></pre>
+<p>这个基本的CMake配置看起来很像以前，除了我们将<code>warp_perspective</code> CMake构建添加为子目录。一旦其CMake代码运行，我们将<code>example_app</code>应用程序与<code>warp_perspective</code>共享库链接。</p>
+<p>注意</p>
+<p>上面的例子中嵌入了一个关键细节：<code>warp_perspective</code>链接线的<code>-Wl,--no-as-needed</code>前缀。这是必需的，因为我们实际上不会在应用程序代码中从<code>warp_perspective</code>共享库中调用任何函数。我们只需要运行全局<code>RegisterOperators</code>对象的构造函数。不方便的是，这会使链接器混乱并使其认为它可以完全跳过与库的链接。在Linux上，<code>-Wl,--no-as-needed</code>标志强制链接发生(注意：此标志特定于Linux！）。还有其他解决方法。最简单的是在运算符库中定义_某些函数_，您需要从主应用程序调用它。这可以像在某个头中声明的函数<code>void init();</code>一样简单，然后在运算符库中将其定义为<code>void init() { }</code>。在主应用程序中调用此<code>init()</code>函数将使链接器感觉这是一个值得链接的库。不幸的是，这超出了我们的控制范围，我们宁愿让您知道原因和简单的解决方法，而不是将一些不透明的宏交给您的代码中的plop。</p>
+<p>现在，由于我们现在在最上层找到<code>Torch</code>包，<code>warp_perspective</code>子目录中的<code>CMakeLists.txt</code>文件可以缩短一点。它应该如下所示：</p>
+<pre><code>find_package(OpenCV REQUIRED)
+add_library(warp_perspective SHARED op.cpp)
+target_compile_features(warp_perspective PRIVATE cxx_range_for)
+target_link_libraries(warp_perspective PRIVATE &quot;${TORCH_LIBRARIES}&quot;)
+target_link_libraries(warp_perspective PRIVATE opencv_core opencv_photo)
+
+</code></pre>
+<p>让我们重新构建我们的示例应用程序，它还将与自定义运算符库链接。在最上层 <code>example_app</code> 目录中：</p>
+<pre><code>$ mkdir build
+$ cd build
+$ cmake -DCMAKE_PREFIX_PATH=/path/to/libtorch ..
+-- The C compiler identification is GNU 5.4.0
+-- The CXX compiler identification is GNU 5.4.0
+-- Check for working C compiler: /usr/bin/cc
+-- Check for working C compiler: /usr/bin/cc -- works
+-- Detecting C compiler ABI info
+-- Detecting C compiler ABI info - done
+-- Detecting C compile features
+-- Detecting C compile features - done
+-- Check for working CXX compiler: /usr/bin/c++
+-- Check for working CXX compiler: /usr/bin/c++ -- works
+-- Detecting CXX compiler ABI info
+-- Detecting CXX compiler ABI info - done
+-- Detecting CXX compile features
+-- Detecting CXX compile features - done
+-- Looking for pthread.h
+-- Looking for pthread.h - found
+-- Looking for pthread_create
+-- Looking for pthread_create - not found
+-- Looking for pthread_create in pthreads
+-- Looking for pthread_create in pthreads - not found
+-- Looking for pthread_create in pthread
+-- Looking for pthread_create in pthread - found
+-- Found Threads: TRUE
+-- Found torch: /libtorch/lib/libtorch.so
+-- Configuring done
+-- Generating done
+-- Build files have been written to: /warp_perspective/example_app/build
+$ make -j
+Scanning dependencies of target warp_perspective
+[ 25%] Building CXX object warp_perspective/CMakeFiles/warp_perspective.dir/op.cpp.o
+[ 50%] Linking CXX shared library libwarp_perspective.so
+[ 50%] Built target warp_perspective
+Scanning dependencies of target example_app
+[ 75%] Building CXX object CMakeFiles/example_app.dir/main.cpp.o
+[100%] Linking CXX executable example_app
+[100%] Built target example_app
+
+</code></pre>
+<p>如果我们现在运行<code>example_app</code>二进制文件并将其交给我们的序列化模型，我们应该得到一个圆满的结局：</p>
+<pre><code>$ ./example_app example.pt
+11.4125   5.8262   9.5345   8.6111  12.3997
+ 7.4683  13.5969   9.0850  11.0698   9.4008
+ 7.4597  15.0926  12.5727   8.9319   9.0666
+ 9.4834  11.1747   9.0162  10.9521   8.6269
+10.0000  10.0000  10.0000  10.0000  10.0000
+10.0000  10.0000  10.0000  10.0000  10.0000
+10.0000  10.0000  10.0000  10.0000  10.0000
+10.0000  10.0000  10.0000  10.0000  10.0000
+[ Variable[CPUFloatType]{8,5} ]
+
+</code></pre>
+<p>成功！你现在准备推断了。</p>
+<h2 id="_4">结论</h2>
+<p>本教程向您介绍了如何在C ++中实现自定义TorchScript运算符，如何将其构建到共享库中，如何在Python中使用它来定义TorchScript模型，以及最后如何将其加载到C ++应用程序中以进行推理工作负载。现在，您已准备好使用与第三方C ++库连接的C ++运算符扩展TorchScript模型，编写自定义高性能CUDA内核，或实现需要Python，TorchScript和C ++之间的界线平滑混合的任何其他用例。</p>
+<p>与往常一样，如果您遇到任何问题或有疑问，您可以使用我们的<a href="https://discuss.pytorch.org/">论坛</a>或 <a href="https://github.com/pytorch/pytorch/issues">GitHub问题</a>取得联系。此外，我们的<a href="https://pytorch.org/cppdocs/notes/faq.html">常见问题解答(FAQ）页面</a>可能会提供有用的信息。</p>
+<h2 id="a">附录A：构建自定义运算符的更多方法</h2>
+<p>“构建自定义运算符”部分介绍了如何使用CMake将自定义运算符构建到共享库中。本附录概述了另外两种编译方法。它们都使用Python作为编译过程的“驱动程序”或“接口”。此外，两者都重复使用，这是相当于TorchScript自定义运算符的香草(渴望）PyTorch，它依赖于 <a href="https://github.com/pybind/pybind11">pybind11</a> 来实现从C ++到Python的“显式”绑定。</p>
+<p>第一种方法使用C ++扩展'<a href="https://pytorch.org/docs/stable/cpp_extension.html#torch.utils.cpp_extension.load">方便的即时(JIT）编译接口</a>，在第一次运行时在PyTorch脚本的后台编译代码。第二种方法依赖于古老的<code>setuptools</code>包，并涉及编写单独的<code>setup.py</code>文件。这允许更高级的配置以及与其他基于<code>setuptools</code>的项目的集成。我们将在下面详细探讨这两种方法。</p>
+<h3 id="jit">使用JIT编译构建</h3>
+<p>PyTorch C ++扩展工具包提供的JIT编译功能允许将自定义运算符的编译直接嵌入到Python代码中，例如：在训练脚本的顶部。</p>
+<p>注意</p>
+<p>这里的“JIT编译”与TorchScript编译器中的JIT编译无关，以优化您的程序。它只是意味着您的自定义操作符C ++代码将在您第一次导入时在系统的<code>/tmp</code>目录下的文件夹中编译，就像您事先已经自己编译它一样。</p>
+<p>这个JIT编译功能有两种形式。首先，您仍然将运算符实现保存在单独的文件(<code>op.cpp</code>）中，然后使用<code>torch.utils.cpp_extension.load()</code>编译扩展。通常，此函数将返回公开C ++扩展的Python模块。但是，由于我们没有将自定义运算符编译到自己的Python模块中，因此我们只想编译普通的共享库。幸运的是，<code>torch.utils.cpp_extension.load()</code>有一个参数<code>is_python_module</code>我们可以设置为<code>False</code>来表示我们只对构建共享库而不是Python模块感兴趣。然后<code>torch.utils.cpp_extension.load()</code>将编译并将共享库加载到当前进程中，就像之前<code>torch.ops.load_library</code>所做的那样：</p>
+<pre><code>import torch.utils.cpp_extension
+
+torch.utils.cpp_extension.load(
+    name=&quot;warp_perspective&quot;,
+    sources=[&quot;op.cpp&quot;],
+    extra_ldflags=[&quot;-lopencv_core&quot;, &quot;-lopencv_imgproc&quot;],
+    is_python_module=False,
+    verbose=True
+)
+
+print(torch.ops.my_ops.warp_perspective)
+
+</code></pre>
+<p>这应该大致打印：</p>
+<pre><code>&lt;built-in method my_ops::warp_perspective of PyCapsule object at 0x7f3e0f840b10&gt;
+
+</code></pre>
+<p>JIT编译的第二种风格允许您将自定义TorchScript运算符的源代码作为字符串传递。为此，请使用<code>torch.utils.cpp_extension.load_inline</code>：</p>
+<pre><code>import torch
+import torch.utils.cpp_extension
+
+op_source = &quot;&quot;&quot;
+#include &lt;opencv2/opencv.hpp&gt;
+#include &lt;torch/script.h&gt;
+
+torch::Tensor warp_perspective(torch::Tensor image, torch::Tensor warp) {
+ cv::Mat image_mat(/*rows=*/image.size(0),
+ /*cols=*/image.size(1),
+ /*type=*/CV_32FC1,
+ /*data=*/image.data&lt;float&gt;());
+ cv::Mat warp_mat(/*rows=*/warp.size(0),
+ /*cols=*/warp.size(1),
+ /*type=*/CV_32FC1,
+ /*data=*/warp.data&lt;float&gt;());
+
+ cv::Mat output_mat;
+ cv::warpPerspective(image_mat, output_mat, warp_mat, /*dsize=*/{64, 64});
+
+ torch::Tensor output =
+ torch::from_blob(output_mat.ptr&lt;float&gt;(), /*sizes=*/{64, 64});
+ return output.clone();
+}
+
+static auto registry =
+ torch::jit::RegisterOperators(&quot;my_ops::warp_perspective&quot;, &amp;warp_perspective);
+&quot;&quot;&quot;
+torch.utils.cpp_extension.load_inline(
+    name=&quot;warp_perspective&quot;,
+    cpp_sources=op_source,
+    extra_ldflags=[&quot;-lopencv_core&quot;, &quot;-lopencv_imgproc&quot;],
+    is_python_module=False,
+    verbose=True,
+)
+
+print(torch.ops.my_ops.warp_perspective)
+
+</code></pre>
+<p>当然，如果源代码相当短，最好只使用<code>torch.utils.cpp_extension.load_inline</code>。</p>
+<h3 id="setuptools">使用Setuptools构建</h3>
+<p>从Python独家构建自定义运算符的第二种方法是使用<code>setuptools</code>。这样做的好处是<code>setuptools</code>具有非常强大和广泛的接口，用于构建用C ++编写的Python模块。但是，由于<code>setuptools</code>实际上是用于构建Python模块而不是普通的共享库(它没有Python期望从模块中获得的必要入口点），因此这条路线可能有点古怪。也就是说，你只需要一个<code>setup.py</code>文件代替<code>CMakeLists.txt</code>，如下所示：</p>
+<p>请注意，我们在底部的<code>BuildExtension</code>中启用了<code>no_python_abi_suffix</code>选项。这指示<code>setuptools</code>在生成的共享库的名称中省略任何Python-3特定的ABI后缀。否则，在Python 3.7上，例如，库可能被称为<code>warp_perspective.cpython-37m-x86_64-linux-gnu.so</code>，其中<code>cpython-37m-x86_64-linux-gnu</code>是ABI标签，但我们真的只是想要它被称为<code>warp_perspective.so</code></p>
+<p>如果我们现在在<code>setup.py</code>所在的文件夹中的终端中运行<code>python setup.py build develop</code>，我们应该看到类似的内容：</p>
+<pre><code>$ python setup.py build develop
+running build
+running build_ext
+building 'warp_perspective' extension
+creating build
+creating build/temp.linux-x86_64-3.7
+gcc -pthread -B /root/local/miniconda/compiler_compat -Wl,--sysroot=/ -Wsign-compare -DNDEBUG -g -fwrapv -O3 -Wall -Wstrict-prototypes -fPIC -I/root/local/miniconda/lib/python3.7/site-packages/torch/lib/include -I/root/local/miniconda/lib/python3.7/site-packages/torch/lib/include/torch/csrc/api/include -I/root/local/miniconda/lib/python3.7/site-packages/torch/lib/include/TH -I/root/local/miniconda/lib/python3.7/site-packages/torch/lib/include/THC -I/root/local/miniconda/include/python3.7m -c op.cpp -o build/temp.linux-x86_64-3.7/op.o -DTORCH_API_INCLUDE_EXTENSION_H -DTORCH_EXTENSION_NAME=warp_perspective -D_GLIBCXX_USE_CXX11_ABI=0 -std=c++11
+cc1plus: warning: command line option '-Wstrict-prototypes' is valid for C/ObjC but not for C++
+creating build/lib.linux-x86_64-3.7
+g++ -pthread -shared -B /root/local/miniconda/compiler_compat -L/root/local/miniconda/lib -Wl,-rpath=/root/local/miniconda/lib -Wl,--no-as-needed -Wl,--sysroot=/ build/temp.linux-x86_64-3.7/op.o -lopencv_core -lopencv_imgproc -o build/lib.linux-x86_64-3.7/warp_perspective.so
+running develop
+running egg_info
+creating warp_perspective.egg-info
+writing warp_perspective.egg-info/PKG-INFO
+writing dependency_links to warp_perspective.egg-info/dependency_links.txt
+writing top-level names to warp_perspective.egg-info/top_level.txt
+writing manifest file 'warp_perspective.egg-info/SOURCES.txt'
+reading manifest file 'warp_perspective.egg-info/SOURCES.txt'
+writing manifest file 'warp_perspective.egg-info/SOURCES.txt'
+running build_ext
+copying build/lib.linux-x86_64-3.7/warp_perspective.so -&gt;
+Creating /root/local/miniconda/lib/python3.7/site-packages/warp-perspective.egg-link (link to .)
+Adding warp-perspective 0.0.0 to easy-install.pth file
+
+Installed /warp_perspective
+Processing dependencies for warp-perspective==0.0.0
+Finished processing dependencies for warp-perspective==0.0.0
+
+</code></pre>
+<p>这将生成一个名为<code>warp_perspective.so</code>的共享库，我们可以像之前那样将其传递给<code>torch.ops.load_library</code>，以使我们的操作符对TorchScript可见：</p>
+<hr/>
+<div align="center">
+  <p><a href="https://www.apachecn.org/" target="_blank"><font face="KaiTi" size="6" color="red">我们一直在努力</font></a><p>
+  <p><a href="https://github.com/apachecn/pytorch-doc-zh" target="_blank">apachecn/pytorch-doc-zh</a></p>
+  <p><a target="_blank" href="https://qm.qq.com/cgi-bin/qm/qr?k=5u_aAU-YlY3fH-m8meXTJzBEo2boQIUs&jump_from=webapi&authKey=CVZcReMt/vKdTXZBQ8ly+jWncXiSzzWOlrx5hybX5pSrKu6s0fvGX54+vHHlgYNt"><img border="0" src="https://pub.idqqimg.com/wpa/images/group.png" alt="【布客】中文翻译组" title="【布客】中文翻译组"></a></p>
+  <p><span id="cnzz_stat_icon_1275211409"></span></p>
+  <!-- <p><a href="https://get.brightdata.com/apachecn" target="_blank"><img src="/assets/images/partnerstack.gif" /></a><p> -->
+  <div class="wwads-cn wwads-horizontal" data-id="206" style="max-width:680px"></div>
+  <div style="text-align:center;margin:0 0 10.5px;">
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3565452474788507" crossorigin="anonymous"></script>
+    <!-- ApacheCNWide -->
+    <ins class="adsbygoogle"
+        style="display:inline-block;width:680px;height:90px"
+        data-ad-client="ca-pub-3565452474788507"
+        data-ad-slot="2543897000"></ins>
+    <script>
+        (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+</div>
+<hr/>
+<!-- 来必力City版安装代码 -->
+<div id="lv-container" data-id="city" data-uid="MTAyMC81ODA2NC8zNDUyNw==">
+  <script type="text/javascript">
+  (function(d, s) {
+      var j, e = d.getElementsByTagName(s)[0];
+
+      if (typeof LivereTower === 'function') { return; }
+
+      j = d.createElement(s);
+      j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+      j.async = true;
+
+      e.parentNode.insertBefore(j, e);
+  })(document, 'script');
+  </script>
+<noscript> 为正常使用来必力评论功能请激活JavaScript</noscript>
+</div>
+<!-- City版安装代码已完成 -->
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+      
+      <nav class="md-footer__inner md-grid" aria-label="Footer" >
+        
+          
+          <a href="../cpp_extension/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Custom C-- and CUDA Extensions" rel="prev">
+            <div class="md-footer__button md-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              <div class="md-ellipsis">
+                Custom C-- and CUDA Extensions
+              </div>
+            </div>
+          </a>
+        
+        
+          
+          <a href="../dist_tuto/" class="md-footer__link md-footer__link--next" aria-label="Next: Writing Distributed Applications with PyTorch" rel="next">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              <div class="md-ellipsis">
+                Writing Distributed Applications with PyTorch
+              </div>
+            </div>
+            <div class="md-footer__button md-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11H4Z"/></svg>
+            </div>
+          </a>
+        
+      </nav>
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright" style="text-align: center; width: 100%;">
+  
+  
+    <div>
+      <div style="margin:0 0 10.5px;"><script type="text/javascript">var cnzz_protocol = (("https:" == document.location.protocol) ? " https://" : " http://");document.write(unescape("%3Cspan id='cnzz_stat_icon_1275211409'%3E%3C/span%3E%3Cscript src='" + cnzz_protocol + "s5.cnzz.com/z_stat.php%3Fid%3D1275211409%26online%3D1%26show%3Dline' type='text/javascript'%3E%3C/script%3E"));</script></div>
+      <p>Copyright © 2023 学习网站 <a href="http://beian.miit.gov.cn" target="_blank">京ICP备19016010号-1</a><br/>网站由 <a href="https://apachecn.org/cooperate/">@片刻小哥哥</a> 提供支持 | 联系QQ/微信: 529815144 请注明来意！</p>
+    </div>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    <script id="__config" type="application/json">{"base": "../..", "features": ["content.code.copy", "content.action.edit", "content.action.view", "navigation.footer"], "search": "../../assets/javascripts/workers/search.208ed371.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    
+    
+  
+      <script src="../../assets/javascripts/bundle.b425cdc4.min.js"></script>
+      
+        
+          <script src="../../javascripts/mathjax.js"></script>
+        
+      
+        
+          <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+        
+      
+        
+          <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+        
+      
+    
+  <script src="../../assets/javascripts/custom.a7283b5f.min.js"></script>
+
+  </body>
+</html>
